@@ -1,0 +1,10 @@
+AttachConsole
+GetStdHandle
+STD_HANDLE
+GetMessage
+TranslateMessage
+DispatchMessage
+PostQuitMessage
+PostThreadMessage
+GetCurrentThreadId
+WM_QUIT
