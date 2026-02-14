@@ -1,6 +1,7 @@
-﻿using System.IO.Pipes;
+﻿using ShiftyGrid.Common;
+using ShiftyGrid.Configuration;
+using System.IO.Pipes;
 using System.Text.Json;
-using ShiftyGrid.Common;
 
 namespace ShiftyGrid.Server;
 
@@ -113,14 +114,29 @@ public class IpcServer : IDisposable
             Logger.Debug($"Received request JSON: {requestJson}");
 
             // Deserialize request
-            var request = JsonSerializer.Deserialize<Request>(requestJson, IpcJsonContext.Default.Request);
+            var baseRequest = JsonSerializer.Deserialize<Request>(requestJson, IpcJsonContext.Default.Request);
 
-            if (request == null)
+            if (baseRequest == null)
             {
                 Logger.Error("Failed to deserialize request");
                 SendResponse(pipeServer, Response.CreateError("Invalid request format"));
                 return;
             }
+
+
+
+            // todo: tired - hack - not working - next fix
+
+            Request request = baseRequest.Command.ToLowerInvariant() switch
+            {
+                // Use the generated context property name that provides JsonTypeInfo<Request<Position>>
+                "move" => JsonSerializer.Deserialize<Request<Position>>(requestJson, IpcJsonContext.Default.RequestPosition) ?? baseRequest,
+                _ => baseRequest
+            };
+
+
+
+
 
             Logger.Info($"Processing request: {request.Command}");
 

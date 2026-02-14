@@ -1,0 +1,8 @@
+SetWindowsHookEx
+UnhookWindowsHookEx
+CallNextHookEx
+GetMessage
+DispatchMessage
+GetKeyState
+GetAsyncKeyState
+KBDLLHOOKSTRUCT

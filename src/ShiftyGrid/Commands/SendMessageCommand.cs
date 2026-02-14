@@ -27,10 +27,10 @@ public class SendMessageCommand : BaseCommand
     {
         SendRequest(
             $"Sending message to running instance: {message}",
-            new Request
+            new Request<string>
             {
                 Command = Name,
-                Args = [message]
+                Data = message
             }
         );
     }

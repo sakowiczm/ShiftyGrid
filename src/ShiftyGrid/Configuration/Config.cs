@@ -18,10 +18,10 @@ public record struct Position(Grid Grid, int StartX, int StartY, int EndX, int E
     }
     
     // temp for testing
-    public static readonly Position TopLeft = new Position(new Grid(10, 10), 0, 0, 5, 5);
-    public static readonly Position TopRight = new Position(new Grid(10, 10), 5, 0, 10, 5);
-    public static readonly Position BottomLeft = new Position(new Grid(10, 10), 0, 5, 5, 10);
-    public static readonly Position BottomRight = new Position(new Grid(10, 10), 1, 5, 10, 10);
+    public static readonly Position LeftTop = new Position(new Grid(10, 10), 0, 0, 5, 5);
+    public static readonly Position RightTop = new Position(new Grid(10, 10), 5, 0, 10, 5);
+    public static readonly Position LeftBottom = new Position(new Grid(10, 10), 0, 5, 5, 10);
+    public static readonly Position RightBottom = new Position(new Grid(10, 10), 1, 5, 10, 10);
     public static readonly Position LeftHalf = new Position(new Grid(10, 10), 0, 0, 5, 10);
     public static readonly Position RightHalf = new Position(new Grid(10, 10), 5, 0, 10, 10);
 }

@@ -1,3 +1,4 @@
 <Solution>
-  <Project Path="src/ShiftyGrid.csproj" />
+  <Project Path="src/ShiftyGrid.Keyboard/ShiftyGrid.Keyboard.csproj" />
+  <Project Path="src/ShiftyGrid/ShiftyGrid.csproj" />
 </Solution>
