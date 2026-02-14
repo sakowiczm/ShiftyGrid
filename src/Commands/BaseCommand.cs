@@ -4,6 +4,8 @@ using ShiftyGrid.Server;
 namespace ShiftyGrid.Commands;
 
 // todo: not every one server command will be exposed as cli command
+// todo: command can be triggered also only by keyboard shortcut
+// todo: unify / minimize logging
 
 /// <summary>
 /// Base class for client commands that communicate with the server via IPC
