@@ -49,7 +49,7 @@ public static class StartCommand
 
         if (!instanceManager.IsSingleInstance())
         {
-            Console.WriteLine("Another instance is already running.");
+            Console.WriteLine("Another instance is already running. Exiting.");
             Logger.Warning("Another instance is already running. Exiting.");
             Environment.Exit(1);
         }

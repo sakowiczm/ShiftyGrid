@@ -38,14 +38,13 @@ public abstract class BaseCommand
     internal void SendRequest(string actionDescription, Request request)
     {
         // todo: improve server not running detection - sync over async issue
-        //  SendRequestAsync quicker to retur error?
 
         using var client = new IpcClient();
 
         if (!IsServerRunning(client))
         {
             Console.WriteLine("Error: ShiftyGrid server is not running. Please start the server first.");
-            Environment.Exit(1);
+            return;
         }
 
         Console.WriteLine(actionDescription);
@@ -59,7 +58,7 @@ public abstract class BaseCommand
         else
         {
             Console.WriteLine($"Error: {response.Message}");
-            Environment.Exit(1);
+            return;
         }
     }
 

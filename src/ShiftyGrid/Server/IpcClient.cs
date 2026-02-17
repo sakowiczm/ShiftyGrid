@@ -7,7 +7,7 @@ namespace ShiftyGrid.Server;
 public class IpcClient : IDisposable
 {
     private const string PipeName = "ShiftyGrid_Commands";
-    private const int ConnectionTimeoutMs = 5000; // 5 seconds
+    private const int ConnectionTimeoutMs = 100;
     private NamedPipeClientStream? _pipeClient;
 
     public async Task<Response> SendRequestAsync(Request request)
