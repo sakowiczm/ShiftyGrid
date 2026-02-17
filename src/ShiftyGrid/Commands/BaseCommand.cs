@@ -8,7 +8,6 @@ namespace ShiftyGrid.Commands;
 
 // todo: not every one server command will be exposed as cli command
 // todo: command can be triggered also only by keyboard shortcut
-// todo: unify / minimize logging
 
 public abstract class BaseCommand
 {
@@ -50,7 +49,6 @@ public abstract class BaseCommand
         }
 
         Console.WriteLine(actionDescription);
-        Logger.Initialize();
 
         var response = client.SendRequest(request);
 
@@ -90,7 +88,7 @@ public abstract class BaseCommand
         }
         catch (Exception ex)
         {
-            Logger.Debug($"Server health check failed: {ex.Message}");
+            Logger.Error($"Server health check failed: {ex.Message}");
             return false;
         }
     }

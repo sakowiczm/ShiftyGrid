@@ -14,7 +14,6 @@ internal class ExitCommandHandler(Action<bool> setShouldExit, Func<bool> getShou
             return Response.CreateSuccess("Server is already shutting down");
         }
 
-        Console.WriteLine("Exit command received via IPC. Shutting down...");
         Logger.Info("Exit command received, stopping server");
 
         setShouldExit(true);

@@ -32,14 +32,14 @@ public class WindowPositioner
 
     internal static bool ChangePosition(Window window, Position position, int gap)
     {
-        Logger.Info($"Positioning window: {window.Text} (Handle: {window.Handle})");
-        Logger.Info($"Monitor work area: ({window.MonitorRect.left}, {window.MonitorRect.top}) - ({window.MonitorRect.right}, {window.MonitorRect.bottom})");
+        Logger.Debug($"Positioning window: {window.Text} (Handle: {window.Handle})");
+        Logger.Debug($"Monitor work area: ({window.MonitorRect.left}, {window.MonitorRect.top}) - ({window.MonitorRect.right}, {window.MonitorRect.bottom})");
 
         // todo: offset may not need to be calculated for every window
-        Logger.Info($"Invisible border offsets - Left: {window.Offset.left}, Top: {window.Offset.top}, Right: {window.Offset.right}, Bottom: {window.Offset.bottom}");
+        Logger.Debug($"Invisible border offsets - Left: {window.Offset.left}, Top: {window.Offset.top}, Right: {window.Offset.right}, Bottom: {window.Offset.bottom}");
 
         var (startX, startY, endX, endY) = position;
-        Logger.Info($"Grid position: ({startX},{startY}) to ({endX},{endY})");
+        Logger.Debug($"Grid position: ({startX},{startY}) to ({endX},{endY})");
         
         var monitorWidth = window.MonitorRect.right - window.MonitorRect.left;
         var monitorHeight = window.MonitorRect.bottom - window.MonitorRect.top;
@@ -62,9 +62,9 @@ public class WindowPositioner
         var width = gapWidth + window.Offset.left + window.Offset.right;
         var height = gapHeight + window.Offset.top + window.Offset.bottom;
 
-        Logger.Info($"Visual position: ({visualX}, {visualY}) size: {visualWidth}x{visualHeight}");
-        Logger.Info($"With {gap}px gap: ({gapX}, {gapY}) size: {gapWidth}x{gapHeight}");
-        Logger.Info($"Final adjusted position: ({x}, {y}) size: {width}x{height}");
+        Logger.Debug($"Visual position: ({visualX}, {visualY}) size: {visualWidth}x{visualHeight}");
+        Logger.Debug($"With {gap}px gap: ({gapX}, {gapY}) size: {gapWidth}x{gapHeight}");
+        Logger.Debug($"Final adjusted position: ({x}, {y}) size: {width}x{height}");
 
         var result = PInvoke.SetWindowPos(
             window.Handle,

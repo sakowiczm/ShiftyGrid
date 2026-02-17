@@ -2,10 +2,21 @@
 
 namespace ShiftyGrid.Common;
 
+internal enum LogLevel
+{
+    None = 0,
+    Error = 1,
+    Warn = 2,
+    Debug = 3,
+    Info = 4,
+    //Verbose   
+}
+
 internal static class Logger
 {
     public static string LogFilePath { get; private set; }
-    public static bool IsLoggingDisabled { get; private set; }
+    public static LogLevel MinimumLogLevel { get; private set; }
+
     private static readonly Channel<string> _logChannel;
     private static readonly Task _loggingTask;
     private static readonly CancellationTokenSource _cancellationTokenSource;
@@ -29,11 +40,11 @@ internal static class Logger
         AppDomain.CurrentDomain.ProcessExit += OnProcessExit;
     }
 
-    public static void Initialize(string? logDirectory = null, bool disableLogging = false)
+    public static void Initialize(string? logDirectory = null, LogLevel logLevel = LogLevel.Info)
     {
-        IsLoggingDisabled = disableLogging;
-
-        if (disableLogging)
+        MinimumLogLevel = logLevel;
+        
+        if (logLevel == LogLevel.None)
         {
             LogFilePath = string.Empty;
             return;
@@ -53,7 +64,7 @@ internal static class Logger
         try
         {
             // If logging is disabled, just drain the channel without writing to file
-            if (IsLoggingDisabled)
+            if (MinimumLogLevel == LogLevel.None)
             {
                 await foreach (var _ in _logChannel.Reader.ReadAllAsync(token))
                 {
@@ -88,36 +99,38 @@ internal static class Logger
         _loggingTask.Wait(TimeSpan.FromMilliseconds(500));
     }
 
-    private static void Log(string level, string message)
+    private static void Log(LogLevel logLevel, string message)
     {
         var timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
-        var entry = $"[{timestamp}] [{level}] {message}";
+        var entry = $"[{timestamp}] [{logLevel}] {message}";
 
-        _logChannel.Writer.TryWrite(entry);
-
-        //Console.ForegroundColor = level switch
-        //{
-        //    "DEBUG" => ConsoleColor.DarkGray,
-        //    "INFO" => ConsoleColor.White,
-        //    "WARN" => ConsoleColor.Yellow,
-        //    "ERROR" => ConsoleColor.Red,
-        //    _ => Console.ForegroundColor
-        //};
-
-        //Console.WriteLine(entry);
-        //Console.ResetColor();
+        // Write to file if logLevel meets file threshold
+        if (logLevel <= MinimumLogLevel)
+        {
+            _logChannel.Writer.TryWrite(entry);
+        }
     }
 
-    public static void Debug(string message) => Log("DEBUG", message);
-    public static void Info(string message) => Log("INFO", message);
-    public static void Warning(string message) => Log("WARN", message);
+    public static void Debug(string message) => Log(LogLevel.Debug, message);
+    public static void Info(string message) => Log(LogLevel.Info, message);
+    public static void Warning(string message) => Log(LogLevel.Warn, message);
     public static void Error(string message, Exception? exception = null)
     {
         var fullMessage = exception != null
             ? $"{message} | Exception: {exception.GetType().Name} - {exception.Message}\n{exception.StackTrace}"
             : message;
 
-        Log("ERROR", fullMessage);
+        Log(LogLevel.Error, fullMessage);
     }
+
+    public static LogLevel GetLogLevel(string logLevel) => logLevel.ToLowerInvariant() switch
+    {
+        "debug" => LogLevel.Debug,
+        "info" => LogLevel.Info,
+        "warn" => LogLevel.Warn,
+        "error" => LogLevel.Error,
+        "none" => LogLevel.None,
+        _ => LogLevel.Info
+    };
 
 }

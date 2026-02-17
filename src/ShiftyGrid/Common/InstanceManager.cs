@@ -32,7 +32,6 @@ internal class InstanceManager : IDisposable
         catch (Exception ex)
         {
             Logger.Error($"InstanceManager. Error checking instance.", ex);
-            Console.WriteLine($"InstanceManager. Error checking instance.", ex);
             return false;
         }
     }
@@ -49,7 +48,6 @@ internal class InstanceManager : IDisposable
             catch (Exception ex)
             {
                 Logger.Error($"InstanceManager. Error releasing instance lock.", ex);
-                Console.WriteLine($"InstanceManager. Error releasing instance lock.", ex);
             }
         }
 

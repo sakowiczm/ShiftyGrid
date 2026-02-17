@@ -22,8 +22,6 @@ internal class HandlerRegistry : IRequestHandler
 
     public Response Handle(Request request)
     {
-        Logger.Info($"Received request: {request.Command}");
-
         // Don't process requests if we're already shutting down (except exit)
         var command = request.Command.ToLowerInvariant();
         if (_getShouldExit() && command != ExitCommand.Name)

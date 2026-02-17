@@ -23,8 +23,8 @@ internal class Program
         rootCommand.AddCommand(new StatusCommand().Create());
         //rootCommand.AddCommand(new MoveCommand().Create());
 
-        rootCommand.SetHandler(() => StartCommand.Execute(disableLogging: false));
-        
+        rootCommand.SetHandler(() => StartCommand.Execute("info"));
+
         return rootCommand;
     }    
 }

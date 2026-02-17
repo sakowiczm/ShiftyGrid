@@ -29,4 +29,8 @@
 	  <ProjectReference Include="..\ShiftyGrid.Keyboard\ShiftyGrid.Keyboard.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="Properties\" />
+	</ItemGroup>
+
 </Project>

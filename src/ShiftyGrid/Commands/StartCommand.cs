@@ -15,16 +15,18 @@ public static class StartCommand
     public static Command Create()
     {
         var startCommand = new Command("start", "Start the ShiftyGrid server instance");
-        var noLogsOption = new Option<bool>(
-            aliases: ["--no-logs"],
-            description: "Disable file logging");
 
-        startCommand.AddOption(noLogsOption);
-        startCommand.SetHandler(Execute, noLogsOption);
+        var logLevelOption = new Option<string>(
+            aliases: ["--log-level"],
+            getDefaultValue: () => "info",
+            description: "Console log level: none, debug, info, warn, error");
+
+        startCommand.AddOption(logLevelOption);
+        startCommand.SetHandler(Execute, logLevelOption);
 
         return startCommand;
     }
-    
+
     private static IpcServer? _ipcServer;
     private static KeyboardEngine? _keyboardEngine;
     private static bool _shouldExit;
@@ -33,12 +35,13 @@ public static class StartCommand
     /// <summary>
     /// Starts IPC server instance with integrated keyboard engine
     /// </summary>
-    public static void Execute(bool disableLogging)
+    public static void Execute(string logLevel)
     {
         // Capture the main thread ID for exit signaling
         _mainThreadId = PInvoke.GetCurrentThreadId();
 
-        Logger.Initialize(disableLogging: disableLogging);
+        Logger.Initialize(null, Logger.GetLogLevel(logLevel));
+
         Logger.Info("ShiftyGrid Starting");
         Logger.Info($"OS Version: {Environment.OSVersion}");
 
@@ -204,9 +207,7 @@ public static class StartCommand
         catch (Exception ex)
         {
             Logger.Error($"[Keyboard Action] Error executing {e.Shortcut.ActionId}: {ex.Message}");
-            Console.WriteLine($"[Keyboard Action] Error executing {e.Shortcut.ActionId}: {ex.Message}");
         }
-
 
     }
 }
