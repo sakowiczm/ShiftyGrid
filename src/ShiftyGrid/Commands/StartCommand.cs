@@ -126,7 +126,7 @@ public static class StartCommand
             keyCombination: new KeyCombination(0x51, ModifierKeys.None), // Key "q"
             actionId: "move-left-half",
             scope: ShortcutScope.Global,
-            blockKey: false
+            blockKey: true
         ));
 
         dblCtrlMode.Shortcuts.Add(new ShortcutDefinition(
@@ -134,7 +134,7 @@ public static class StartCommand
             keyCombination: new KeyCombination(0x57, ModifierKeys.None), // Key "w"
             actionId: "move-right-half",
             scope: ShortcutScope.Global,
-            blockKey: false
+            blockKey: true
         ));
 
 
@@ -142,6 +142,8 @@ public static class StartCommand
         _keyboardEngine.RegisterMode(dblCtrlMode);
 
         Console.WriteLine($"Registered mode: {dblCtrlMode.Name} ({dblCtrlMode.Shortcuts.Count} shortcuts)");
+
+
 
 
 
