@@ -1,10 +1,18 @@
+using System.Text.Json.Serialization;
+
 namespace ShiftyGrid.Configuration;
 
 // todo: in the future we can have different grid for each monitor - would that make sense?
 
-public record struct Grid(int Columns, int Rows);
+public record struct Grid([property: JsonPropertyName("collumns")] int Columns, [property: JsonPropertyName("rows")] int Rows);
 
-public record struct Position(Grid Grid, int StartX, int StartY, int EndX, int EndY)
+//public record struct Position(Grid Grid, int StartX, int StartY, int EndX, int EndY)
+public record struct Position(
+      [property: JsonPropertyName("grid")] Grid Grid,
+      [property: JsonPropertyName("startX")] int StartX,
+      [property: JsonPropertyName("startY")] int StartY,
+      [property: JsonPropertyName("endX")] int EndX,
+      [property: JsonPropertyName("endY")] int EndY)
 {
     // todo: can have keyboard shortcut associated 
     // idea: can have name as second param of move command but this has little sense as we would move active console unless other process sends this command

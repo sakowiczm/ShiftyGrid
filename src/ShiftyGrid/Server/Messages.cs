@@ -1,4 +1,5 @@
 ﻿using ShiftyGrid.Configuration;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace ShiftyGrid.Server;
@@ -14,23 +15,17 @@ public class Request
     [JsonPropertyName("command")]
     public string Command { get; set; } = string.Empty;
 
-    ///// <summary>
-    ///// Request arguments
-    ///// </summary>
-    //[JsonPropertyName("args")]
-    //public string[] Args { get; set; } = Array.Empty<string>();
+    /// <summary>
+    /// Optional data payload as JsonElement (deserialized by handlers based on command type)
+    /// </summary>
+    [JsonPropertyName("data")]
+    public JsonElement? Data { get; set; }
 
     /// <summary>
     /// Timestamp when request was created
     /// </summary>
     [JsonPropertyName("timestamp")]
     public DateTime Timestamp { get; set; } = DateTime.UtcNow;
-}
-
-public class Request<T> : Request
-{
-    [JsonPropertyName("data")]
-    public T? Data { get; set; }
 }
 
 /// <summary>
@@ -87,8 +82,10 @@ public class Response
 /// </summary>
 [JsonSerializable(typeof(Request))]
 [JsonSerializable(typeof(Response))]
-//[JsonSerializable(typeof(Dictionary<string, string>))]
-[JsonSerializable(typeof(Request<Position>))]
+[JsonSerializable(typeof(Position))]
+[JsonSerializable(typeof(Grid))]
+[JsonSerializable(typeof(string))]
+[JsonSerializable(typeof(JsonElement))]
 internal partial class IpcJsonContext : JsonSerializerContext
 {
 }

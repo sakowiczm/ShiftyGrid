@@ -1,12 +1,11 @@
 using System.CommandLine;
-using ShiftyGrid.Server;
 
 namespace ShiftyGrid.Commands;
 
 public class SendMessageCommand : BaseCommand
 {
     public const string Name = "send";
-    
+
     public Command Create()
     {
         var sendCommand = new Command(Name, "Send a message to the running instance");
@@ -23,15 +22,5 @@ public class SendMessageCommand : BaseCommand
         return sendCommand;
     }
 
-    private void Send(string message)
-    {
-        SendRequest(
-            $"Sending message to running instance: {message}",
-            new Request<string>
-            {
-                Command = Name,
-                Data = message
-            }
-        );
-    }
+    private void Send(string message) => SendRequest($"Sending message to running instance: {message}", Name, message);
 }

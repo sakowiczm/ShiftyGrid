@@ -30,7 +30,7 @@ public class IpcClient : IDisposable
             // Serialize and send request
             var requestJson = JsonSerializer.Serialize(request, IpcJsonContext.Default.Request);
             Logger.Debug($"Sending request: {request.Command}");
-            
+
             using var writer = new StreamWriter(_pipeClient, leaveOpen: true) { AutoFlush = true };
             await writer.WriteLineAsync(requestJson);
 

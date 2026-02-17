@@ -1,5 +1,4 @@
 using System.CommandLine;
-using ShiftyGrid.Server;
 
 namespace ShiftyGrid.Commands;
 
@@ -15,11 +14,5 @@ public class StatusCommand : BaseCommand
         return exitCommand;
     }
 
-    private void Send()
-    {
-        SendRequest(
-            "Sending status command to running instance...",
-            new Request { Command = Name }
-        );
-    }
+    private void Send() => SendRequest("Sending status command to running instance...", Name);
 }

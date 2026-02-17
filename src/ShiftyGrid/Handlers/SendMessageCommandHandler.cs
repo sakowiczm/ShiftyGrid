@@ -1,27 +1,25 @@
 using ShiftyGrid.Common;
 using ShiftyGrid.Server;
+using System.Text.Json.Serialization.Metadata;
 
 namespace ShiftyGrid.Handlers;
 
-internal class SendMessageCommandHandler : IRequestHandler<string>
+internal class SendMessageCommandHandler : RequestHandler<string>
 {
-    public Response Handle(Request<string> request)
+    protected override Response Handle(string data)
     {
-        if (!string.IsNullOrEmpty(request.Data))
+        if (string.IsNullOrEmpty(data))
         {
-            Console.WriteLine($"[IPC Message] {request.Data}");
-            Logger.Info($"Message received: {request.Data}");
-            return Response.CreateSuccess($"Message displayed: {request.Data}");
+            return Response.CreateError("No message provided");
         }
 
-        return Response.CreateError("No message provided");
+        Console.WriteLine($"[IPC Message] {data}");
+        Logger.Info($"Message received: {data}");
+        return Response.CreateSuccess($"Message displayed: {data}");
     }
 
-    // todo: clean handlers necessity
-    Response IRequestHandler.Handle(Request request)
+    protected override JsonTypeInfo<string> GetJsonTypeInfo()
     {
-        return request is Request<string> stringRequest
-            ? Handle(stringRequest)
-            : Response.CreateError($"Invalid request type for {nameof(SendMessageCommandHandler)}");
+        return IpcJsonContext.Default.String;
     }
 }

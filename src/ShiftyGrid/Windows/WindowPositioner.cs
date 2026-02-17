@@ -13,6 +13,8 @@ namespace ShiftyGrid.Windows;
         
 // todo: something else can also supply what is the applicable foreground window
 
+// todo: position 4 has some sizing issues
+
 
 public class WindowPositioner
 {

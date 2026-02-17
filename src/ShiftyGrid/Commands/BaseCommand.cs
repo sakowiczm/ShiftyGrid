@@ -1,5 +1,8 @@
 using ShiftyGrid.Common;
+using ShiftyGrid.Configuration;
 using ShiftyGrid.Server;
+using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 
 namespace ShiftyGrid.Commands;
 
@@ -7,14 +10,36 @@ namespace ShiftyGrid.Commands;
 // todo: command can be triggered also only by keyboard shortcut
 // todo: unify / minimize logging
 
-/// <summary>
-/// Base class for client commands that communicate with the server via IPC
-/// </summary>
 public abstract class BaseCommand
 {
-    protected void SendRequest(string actionDescription, Request message)
+    protected void SendRequest<T>(string actionDescription, string command, T data)
+    {
+        var jsonData = JsonSerializer.SerializeToElement(data, GetJsonTypeInfo<T>());
+
+        var request = new Request
+        {
+            Command = command,
+            Data = jsonData
+        };
+
+        SendRequest(actionDescription, request);
+    }
+
+    protected void SendRequest(string actionDescription, string command)
+    {
+        var request = new Request
+        {
+            Command = command,
+            Data = null
+        };
+
+        SendRequest(actionDescription, request);
+    }
+
+    internal void SendRequest(string actionDescription, Request request)
     {
         // todo: improve server not running detection - sync over async issue
+        //  SendRequestAsync quicker to retur error?
 
         using var client = new IpcClient();
 
@@ -26,8 +51,8 @@ public abstract class BaseCommand
 
         Console.WriteLine(actionDescription);
         Logger.Initialize();
-        
-        var response = client.SendRequest(message);
+
+        var response = client.SendRequest(request);
 
         if (response.Success)
         {
@@ -40,6 +65,19 @@ public abstract class BaseCommand
         }
     }
 
+    /// <summary>
+    /// Gets the JsonTypeInfo for AOT-safe serialization
+    /// </summary>
+    private JsonTypeInfo<T> GetJsonTypeInfo<T>()
+    {
+        if (typeof(T) == typeof(Position))
+            return (JsonTypeInfo<T>)(object)IpcJsonContext.Default.Position;
+        if (typeof(T) == typeof(string))
+            return (JsonTypeInfo<T>)(object)IpcJsonContext.Default.String;
+
+        throw new NotSupportedException($"Type {typeof(T).Name} is not registered in IpcJsonContext");
+    }
+
     protected bool IsServerRunning(IpcClient client)
     {
         try
@@ -47,6 +85,7 @@ public abstract class BaseCommand
             // tood: have dedicated health check command
             var testRequest = new Request { Command = "status" };
             var response = client.SendRequest(testRequest);
+            
             return response.Success;
         }
         catch (Exception ex)
