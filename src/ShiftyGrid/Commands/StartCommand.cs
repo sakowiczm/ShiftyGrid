@@ -173,7 +173,7 @@ public static class StartCommand
         _ipcServer?.Dispose();
     }
 
-    private static void OnShortcutTriggered(object? sender, KeyboardTriggeredEventArgs e)
+    private static async void OnShortcutTriggered(object? sender, KeyboardTriggeredEventArgs e)
     {
         Logger.Info($"Shortcut triggered: {e.Shortcut.Id} (Action: {e.Shortcut.ActionId})");
 
@@ -185,22 +185,22 @@ public static class StartCommand
             switch (e.Shortcut.ActionId)
             {
                 case "move-left-top":
-                    new MoveCommand().Send(Position.LeftTop);
+                    await new MoveCommand().SendAsync(Position.LeftTop);
                     break;
                 case "move-right-top":
-                    new MoveCommand().Send(Position.RightTop);
+                    await new MoveCommand().SendAsync(Position.RightTop);
                     break;
                 case "move-left-bottom":
-                    new MoveCommand().Send(Position.LeftBottom);
+                    await new MoveCommand().SendAsync(Position.LeftBottom);
                     break;
                 case "move-right-bottom":
-                    new MoveCommand().Send(Position.RightBottom);
+                    await new MoveCommand().SendAsync(Position.RightBottom);
                     break;
                 case "move-left-half":
-                    new MoveCommand().Send(Position.LeftHalf);
+                    await new MoveCommand().SendAsync(Position.LeftHalf);
                     break;
                 case "move-right-half":
-                    new MoveCommand().Send(Position.RightHalf);
+                    await new MoveCommand().SendAsync(Position.RightHalf);
                     break;
             }
         }

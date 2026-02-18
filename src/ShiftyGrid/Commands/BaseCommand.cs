@@ -11,7 +11,7 @@ namespace ShiftyGrid.Commands;
 
 public abstract class BaseCommand
 {
-    protected void SendRequest<T>(string actionDescription, string command, T data)
+    protected async Task SendRequestAsync<T>(string actionDescription, string command, T data)
     {
         var jsonData = JsonSerializer.SerializeToElement(data, GetJsonTypeInfo<T>());
 
@@ -21,10 +21,10 @@ public abstract class BaseCommand
             Data = jsonData
         };
 
-        SendRequest(actionDescription, request);
+        await SendRequestAsync(actionDescription, request);
     }
 
-    protected void SendRequest(string actionDescription, string command)
+    protected async Task SendRequestAsync(string actionDescription, string command)
     {
         var request = new Request
         {
@@ -32,32 +32,30 @@ public abstract class BaseCommand
             Data = null
         };
 
-        SendRequest(actionDescription, request);
+        await SendRequestAsync(actionDescription, request);
     }
 
-    internal void SendRequest(string actionDescription, Request request)
+    internal async Task SendRequestAsync(string actionDescription, Request request)
     {
-        // todo: improve server not running detection - sync over async issue
-
         using var client = new IpcClient();
 
-        if (!IsServerRunning(client))
+        if (!await IsServerRunningAsync(client))
         {
             Console.WriteLine("Error: ShiftyGrid server is not running. Please start the server first.");
             return;
         }
 
-        Console.WriteLine(actionDescription);
+        Logger.Info(actionDescription);
 
-        var response = client.SendRequest(request);
+        var response = await client.SendRequestAsync(request);
 
         if (response.Success)
         {
-            Console.WriteLine($"Success: {response.Message}");
+            Logger.Info($"Success: {response.Message}");
         }
         else
         {
-            Console.WriteLine($"Error: {response.Message}");
+            Logger.Info($"Error: {response.Message}");
             return;
         }
     }
@@ -75,13 +73,13 @@ public abstract class BaseCommand
         throw new NotSupportedException($"Type {typeof(T).Name} is not registered in IpcJsonContext");
     }
 
-    protected bool IsServerRunning(IpcClient client)
+    protected async Task<bool> IsServerRunningAsync(IpcClient client)
     {
         try
         {
             // tood: have dedicated health check command
-            var testRequest = new Request { Command = "status" };
-            var response = client.SendRequest(testRequest);
+            var request = new Request { Command = "status" };
+            var response = await client.SendRequestAsync(request);
             
             return response.Success;
         }

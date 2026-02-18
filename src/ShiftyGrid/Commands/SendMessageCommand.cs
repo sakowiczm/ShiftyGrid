@@ -17,10 +17,10 @@ public class SendMessageCommand : BaseCommand
         };
 
         sendCommand.AddOption(messageOption);
-        sendCommand.SetHandler(message => Send(message), messageOption);
+        sendCommand.SetHandler(async message => await SendAsync(message), messageOption);
 
         return sendCommand;
     }
 
-    private void Send(string message) => SendRequest($"Sending message to running instance: {message}", Name, message);
+    private async Task SendAsync(string message) => await SendRequestAsync($"Sending message to running instance: {message}", Name, message);
 }

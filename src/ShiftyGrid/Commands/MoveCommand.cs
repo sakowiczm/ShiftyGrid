@@ -9,11 +9,11 @@ public class MoveCommand : BaseCommand
     //public Command Create()
     //{
     //    var moveCommand = new Command(Name, "Send move command to running instance");
-    //    moveCommand.SetHandler(() => Send(Position.LeftTop));
+    //    moveCommand.SetHandler(async () => await SendAsync(Position.LeftTop));
     //    return moveCommand;
     //}
 
-    public void Send(Position position) =>
-        SendRequest("Sending move command to running instance...", Name, position);
-    
+    public async Task SendAsync(Position position) =>
+        await SendRequestAsync("Sending move command to running instance...", Name, position);
+
 }

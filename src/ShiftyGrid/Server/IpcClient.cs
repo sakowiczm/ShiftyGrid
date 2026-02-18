@@ -7,7 +7,7 @@ namespace ShiftyGrid.Server;
 public class IpcClient : IDisposable
 {
     private const string PipeName = "ShiftyGrid_Commands";
-    private const int ConnectionTimeoutMs = 100;
+    private const int ConnectionTimeoutMs = 25;
     private NamedPipeClientStream? _pipeClient;
 
     public async Task<Response> SendRequestAsync(Request request)
@@ -72,11 +72,6 @@ public class IpcClient : IDisposable
             Logger.Error($"Error sending request: {ex.Message}", ex);
             return Response.CreateError($"Error: {ex.Message}");
         }
-    }
-
-    public Response SendRequest(Request request)
-    {
-        return SendRequestAsync(request).GetAwaiter().GetResult();
     }
 
     public void Dispose()

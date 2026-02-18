@@ -9,11 +9,11 @@ public class ExitCommand : BaseCommand
     public Command Create()
     {
         var exitCommand = new Command(Name, "Send exit command to running instance");
-        exitCommand.SetHandler(() => Send());
+        exitCommand.SetHandler(async () => await SendAsync());
 
         return exitCommand;
     }
 
-    private void Send()
-        => SendRequest("Sending exit command to running instance...", Name);
+    private async Task SendAsync()
+        => await SendRequestAsync("Sending exit command to running instance...", Name);
 }
