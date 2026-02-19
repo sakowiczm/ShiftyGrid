@@ -32,4 +32,10 @@ public record struct Position(
     public static readonly Position RightBottom = new Position(new Grid(10, 10), 5, 5, 10, 10);
     public static readonly Position LeftHalf = new Position(new Grid(10, 10), 0, 0, 5, 10);
     public static readonly Position RightHalf = new Position(new Grid(10, 10), 5, 0, 10, 10);
+
+
+    public static readonly Position Center = new Position(new Grid(10, 10), 2, 0, 8, 10);
+    public static readonly Position CenterWide = new Position(new Grid(10, 10), 1, 0, 9, 10);
+    public static readonly Position Full = new Position(new Grid(10, 10), 0, 0, 10, 10);
+
 }

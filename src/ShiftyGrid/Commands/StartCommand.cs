@@ -72,21 +72,22 @@ public static class StartCommand
         _keyboardEngine.ShortcutTriggered += OnShortcutTriggered;
 
         //// Register shortcuts
-        //var dblCtrl = new ShortcutDefinition(
-        //    id: "move_1",
-        //    keyCombination: new KeyCombination(0, ModifierKeys.None, true, 0xA2), // 2xCtrl
-        //    actionId: "move",
-        //    scope: ShortcutScope.Global,
-        //    blockKey: true
-        //);
-        //_keyboardEngine.RegisterShortcut(dblCtrl);
+        var dblCtrl = new ShortcutDefinition(
+           id: "ctrl_shift_s_mode",
+           keyCombination: new KeyCombination(0x53, ModifierKeys.Control | ModifierKeys.Shift), // Key "s"
+           actionId: "enter_mode:move_mode",
+           scope: ShortcutScope.Global,
+           blockKey: true
+        );
+        _keyboardEngine.RegisterShortcut(dblCtrl);
 
 
 
         var dblCtrlMode = new ModeDefinition(
-            id: "dbl_ctrl_mode",
-            name: "Double CTRL Mode",
-            activationKeys: new KeyCombination(0, ModifierKeys.None, true, 0xA2), // Double-tap left CTRL (0xA2)
+            id: "move_mode",
+            name: "Ctrl+Shift+S Mode",
+            //activationKeys: new KeyCombination(0, ModifierKeys.None, true, 0xA2), // Double-tap left CTRL (0xA2)
+            activationKeys: new KeyCombination(0, ModifierKeys.None),
             timeoutMs: 5000,
             allowEscape: true
         );
@@ -140,6 +141,30 @@ public static class StartCommand
             blockKey: true
         ));
 
+        dblCtrlMode.Shortcuts.Add(new ShortcutDefinition(
+            id: "ctrl_shift_s_s",
+            keyCombination: new KeyCombination(0x53, ModifierKeys.None), // Key "s"
+            actionId: "move-center",
+            scope: ShortcutScope.Global,
+            blockKey: true
+        ));
+
+        dblCtrlMode.Shortcuts.Add(new ShortcutDefinition(
+            id: "ctrl_shift_s_space",
+            keyCombination: new KeyCombination(0x20, ModifierKeys.None), // Key "space"
+            actionId: "move-center-wide",
+            scope: ShortcutScope.Global,
+            blockKey: true
+        ));
+
+        dblCtrlMode.Shortcuts.Add(new ShortcutDefinition(
+            id: "ctrl_shift_s_space",
+            keyCombination: new KeyCombination(0x46, ModifierKeys.None), // Key "f"
+            actionId: "move-full",
+            scope: ShortcutScope.Global,
+            blockKey: true
+        ));
+
 
         // Register the mode with the engine
         _keyboardEngine.RegisterMode(dblCtrlMode);
@@ -180,6 +205,8 @@ public static class StartCommand
         // todo: execute action based on e.Shortcut.ActionId
         // todo: make better abstraction for different types of commands ipc commands - can be triggered by cli or keyboard shortcuts or something else (e.g sheduler?)
 
+        // todo: Position reaname to Placement?
+
         try
         {
             switch (e.Shortcut.ActionId)
@@ -201,6 +228,15 @@ public static class StartCommand
                     break;
                 case "move-right-half":
                     await new MoveCommand().SendAsync(Position.RightHalf);
+                    break;
+                case "move-center":
+                    await new MoveCommand().SendAsync(Position.Center);
+                    break;
+                case "move-center-wide":
+                    await new MoveCommand().SendAsync(Position.CenterWide);
+                    break;
+                case "move-full":
+                    await new MoveCommand().SendAsync(Position.Full);
                     break;
             }
         }
