@@ -37,6 +37,8 @@ public class ShortcutDefinition
     /// </exception>
     public ShortcutDefinition(string id, KeyCombination keyCombination, string actionId, ShortcutScope scope, bool blockKey)
     {
+        // if id not passed / defined can use Guid.ToString?
+
         Id = id ?? throw new ArgumentNullException(nameof(id));
         KeyCombination = keyCombination;
         ActionId = actionId ?? throw new ArgumentNullException(nameof(actionId));
@@ -89,4 +91,17 @@ public class ShortcutDefinition
     /// For example, pressing "1" might only trigger an action when in "browser" mode.
     /// </remarks>
     public string? ModeId { get; init; }
+
+    /// <summary>
+    /// Gets or initializes a value indicating whether this shortcut should automatically
+    /// exit the mode after executing its action.
+    /// </summary>
+    /// <remarks>
+    /// When true and this shortcut is part of a mode, the mode will be exited immediately
+    /// after the shortcut's action is dispatched. This allows for a streamlined workflow
+    /// where executing an action also completes the mode interaction.
+    /// Only applies to mode shortcuts. Has no effect on top-level shortcuts.
+    /// Default is false.
+    /// </remarks>
+    public bool ExitMode { get; init; }
 }

@@ -71,105 +71,114 @@ public static class StartCommand
         _keyboardEngine = new KeyboardEngine(300);
         _keyboardEngine.ShortcutTriggered += OnShortcutTriggered;
 
-        //// Register shortcuts
-        var dblCtrl = new ShortcutDefinition(
-           id: "ctrl_shift_s_mode",
-           keyCombination: new KeyCombination(0x53, ModifierKeys.Control | ModifierKeys.Shift), // Key "s"
-           actionId: "enter_mode:move_mode",
-           scope: ShortcutScope.Global,
-           blockKey: true
-        );
-        _keyboardEngine.RegisterShortcut(dblCtrl);
+        // todo: vkey - definition
+        // todo: ExitMode in constructor?
+        // todo: actionId for mode predefined in RegisterMode? 
+        // todo: id maybe just Guid?
+        
+        // Register shortcuts
 
-
-
-        var dblCtrlMode = new ModeDefinition(
+        // Create move mode with real activation keys
+        var moveMode = new ModeDefinition(
             id: "move_mode",
-            name: "Ctrl+Shift+S Mode",
-            //activationKeys: new KeyCombination(0, ModifierKeys.None, true, 0xA2), // Double-tap left CTRL (0xA2)
-            activationKeys: new KeyCombination(0, ModifierKeys.None),
+            name: "Move Mode",
             timeoutMs: 5000,
             allowEscape: true
         );
 
-        // Add mode shortcuts for 1, 2, 3
-        dblCtrlMode.Shortcuts.Add(new ShortcutDefinition(
+        // Add mode shortcuts
+        moveMode.Shortcuts.Add(new ShortcutDefinition(
             id: "dbl_ctrl_1",
             keyCombination: new KeyCombination(0x31, ModifierKeys.None), // Key "1"
             actionId: "move-left-top",
             scope: ShortcutScope.Global,
             blockKey: true
-        ));
+        )
+        { ExitMode = true });
 
-        dblCtrlMode.Shortcuts.Add(new ShortcutDefinition(
+        moveMode.Shortcuts.Add(new ShortcutDefinition(
             id: "dbl_ctrl_2",
             keyCombination: new KeyCombination(0x32, ModifierKeys.None), // Key "2"
             actionId: "move-right-top",
             scope: ShortcutScope.Global,
             blockKey: true
-        ));
+        )
+        { ExitMode = true });
 
-        dblCtrlMode.Shortcuts.Add(new ShortcutDefinition(
+        moveMode.Shortcuts.Add(new ShortcutDefinition(
             id: "dbl_ctrl_3",
             keyCombination: new KeyCombination(0x33, ModifierKeys.None), // Key "3"
             actionId: "move-left-bottom",
             scope: ShortcutScope.Global,
             blockKey: true
-        ));
+        )
+        { ExitMode = true });
 
-        dblCtrlMode.Shortcuts.Add(new ShortcutDefinition(
+        moveMode.Shortcuts.Add(new ShortcutDefinition(
             id: "dbl_ctrl_4",
             keyCombination: new KeyCombination(0x34, ModifierKeys.None), // Key "4"
             actionId: "move-right-bottom",
             scope: ShortcutScope.Global,
             blockKey: true
-        ));
+        )
+        { ExitMode = true });
 
-        dblCtrlMode.Shortcuts.Add(new ShortcutDefinition(
+        moveMode.Shortcuts.Add(new ShortcutDefinition(
             id: "dbl_ctrl_q",
             keyCombination: new KeyCombination(0x51, ModifierKeys.None), // Key "q"
             actionId: "move-left-half",
             scope: ShortcutScope.Global,
             blockKey: true
-        ));
+        )
+        { ExitMode = true });
 
-        dblCtrlMode.Shortcuts.Add(new ShortcutDefinition(
+        moveMode.Shortcuts.Add(new ShortcutDefinition(
             id: "dbl_ctrl_w",
             keyCombination: new KeyCombination(0x57, ModifierKeys.None), // Key "w"
             actionId: "move-right-half",
             scope: ShortcutScope.Global,
             blockKey: true
-        ));
+        )
+        { ExitMode = true });
 
-        dblCtrlMode.Shortcuts.Add(new ShortcutDefinition(
+        moveMode.Shortcuts.Add(new ShortcutDefinition(
             id: "ctrl_shift_s_s",
             keyCombination: new KeyCombination(0x53, ModifierKeys.None), // Key "s"
             actionId: "move-center",
             scope: ShortcutScope.Global,
             blockKey: true
-        ));
+        )
+        { ExitMode = true });
 
-        dblCtrlMode.Shortcuts.Add(new ShortcutDefinition(
+        moveMode.Shortcuts.Add(new ShortcutDefinition(
             id: "ctrl_shift_s_space",
             keyCombination: new KeyCombination(0x20, ModifierKeys.None), // Key "space"
             actionId: "move-center-wide",
             scope: ShortcutScope.Global,
             blockKey: true
-        ));
+        )
+        { ExitMode = true });
 
-        dblCtrlMode.Shortcuts.Add(new ShortcutDefinition(
+        moveMode.Shortcuts.Add(new ShortcutDefinition(
             id: "ctrl_shift_s_space",
             keyCombination: new KeyCombination(0x46, ModifierKeys.None), // Key "f"
             actionId: "move-full",
             scope: ShortcutScope.Global,
             blockKey: true
-        ));
+        )
+        { ExitMode = true });
 
+        // Create and register activation shortcut using factory method
+        var activationShortcut = moveMode.CreateActivationShortcut(
+                new KeyCombination(0x53, ModifierKeys.Control | ModifierKeys.Shift) // Ctrl+Shift+S
+            );
+        _keyboardEngine.RegisterShortcut(activationShortcut);
 
         // Register the mode with the engine
-        _keyboardEngine.RegisterMode(dblCtrlMode);
+        _keyboardEngine.RegisterMode(moveMode);
 
-        Console.WriteLine($"Registered mode: {dblCtrlMode.Name} ({dblCtrlMode.Shortcuts.Count} shortcuts)");
+        Console.WriteLine($"Registered mode: {moveMode.Name} ({moveMode.Shortcuts.Count} shortcuts)");
+
 
 
 

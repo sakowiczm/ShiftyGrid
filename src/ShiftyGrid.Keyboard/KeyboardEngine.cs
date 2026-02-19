@@ -44,15 +44,6 @@ public class KeyboardEngine : IDisposable
     {
         _modeManager.RegisterMode(mode);
 
-        // Register the activation key as a shortcut that enters the mode
-        var activationShortcut = new ShortcutDefinition(
-            id: $"{mode.Id}_activate",
-            keyCombination: mode.ActivationKeys,
-            actionId: $"enter_mode:{mode.Id}",
-            scope: ShortcutScope.Global,
-            blockKey: true);
-        _detector.RegisterShortcut(activationShortcut);
-
         // Register mode shortcuts
         foreach (var shortcut in mode.Shortcuts)
         {
@@ -63,7 +54,8 @@ public class KeyboardEngine : IDisposable
                 shortcut.Scope,
                 shortcut.BlockKey)
             {
-                ModeId = mode.Id
+                ModeId = mode.Id,
+                ExitMode = shortcut.ExitMode
             };
             _detector.RegisterShortcut(modeShortcut);
         }
@@ -135,6 +127,12 @@ public class KeyboardEngine : IDisposable
                 {
                     // Reset timeout on each key press
                     _modeManager.ResetTimeout();
+
+                    // Auto-exit mode if shortcut is configured to do so
+                    if (shortcut.ExitMode)
+                    {
+                        _modeManager.ExitMode(ModeExitReason.Completed);
+                    }
                 }
 
                 if (shortcut.BlockKey)

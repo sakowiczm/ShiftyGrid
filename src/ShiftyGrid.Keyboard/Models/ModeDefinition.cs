@@ -43,11 +43,10 @@ public class ModeDefinition
     /// <exception cref="ArgumentNullException">
     /// Thrown if <paramref name="id"/> or <paramref name="name"/> is null.
     /// </exception>
-    public ModeDefinition(string id, string name, KeyCombination activationKeys, int timeoutMs, bool allowEscape)
+    public ModeDefinition(string id, string name, int timeoutMs, bool allowEscape)
     {
         Id = id ?? throw new ArgumentNullException(nameof(id));
         Name = name ?? throw new ArgumentNullException(nameof(name));
-        ActivationKeys = activationKeys;
         TimeoutMs = timeoutMs;
         AllowEscape = allowEscape;
         Shortcuts = new List<ShortcutDefinition>();
@@ -62,11 +61,6 @@ public class ModeDefinition
     /// Gets the human-readable name for this mode, used for display purposes.
     /// </summary>
     public string Name { get; }
-
-    /// <summary>
-    /// Gets the key combination that activates/enters this mode.
-    /// </summary>
-    public KeyCombination ActivationKeys { get; }
 
     /// <summary>
     /// Gets the timeout in milliseconds before automatically exiting this mode.
@@ -96,4 +90,48 @@ public class ModeDefinition
     /// mode provides context.
     /// </remarks>
     public List<ShortcutDefinition> Shortcuts { get; }
+
+    // todo: update
+
+    /// <summary>
+    /// Creates an activation shortcut for this mode using the configured activation keys.
+    /// </summary>
+    /// <param name="id">
+    /// Optional custom ID for the activation shortcut. If null, generates "{ModeId}_activate".
+    /// </param>
+    /// <param name="scope">
+    /// The scope for the activation shortcut (default: Global).
+    /// </param>
+    /// <param name="blockKey">
+    /// Whether the activation shortcut should block the key from propagating to other applications (default: true).
+    /// </param>
+    /// <returns>
+    /// A ShortcutDefinition configured to activate this mode when triggered.
+    /// </returns>
+    /// <remarks>
+    /// This factory method provides a strongly-typed way to create mode activation shortcuts,
+    /// ensuring the activation shortcut is properly linked to this mode without manual string construction.
+    ///
+    /// Example usage:
+    /// <code>
+    /// var mode = new ModeDefinition("move_mode", "Move Mode",
+    ///     new KeyCombination(0x53, ModifierKeys.Control | ModifierKeys.Shift), 5000, true);
+    /// var activationShortcut = mode.CreateActivationShortcut();
+    /// keyboardEngine.RegisterShortcut(activationShortcut);
+    /// keyboardEngine.RegisterMode(mode);
+    /// </code>
+    /// </remarks>
+    public ShortcutDefinition CreateActivationShortcut(
+        KeyCombination activationKeys,
+        ShortcutScope scope = ShortcutScope.Global,
+        bool blockKey = true)
+    {
+        return new ShortcutDefinition(
+            id: $"{Id}_activate",
+            keyCombination: activationKeys,
+            actionId: $"enter_mode:{Id}",
+            scope: scope,
+            blockKey: blockKey
+        );
+    }
 }

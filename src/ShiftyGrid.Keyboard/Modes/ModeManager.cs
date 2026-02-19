@@ -174,5 +174,6 @@ public enum ModeExitReason
     None,
     Timeout,
     Cancelled,
-    NewMode
+    NewMode,
+    Completed
 }
