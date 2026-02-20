@@ -9,7 +9,6 @@ internal enum LogLevel
     Warn = 2,
     Debug = 3,
     Info = 4,
-    //Verbose   
 }
 
 internal static class Logger

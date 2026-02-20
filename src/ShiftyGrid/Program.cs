@@ -21,7 +21,7 @@ internal class Program
         rootCommand.AddCommand(new ExitCommand().Create());
         rootCommand.AddCommand(new SendMessageCommand().Create());
         rootCommand.AddCommand(new StatusCommand().Create());
-        //rootCommand.AddCommand(new MoveCommand().Create());
+        rootCommand.AddCommand(new AboutCommand().Create());
 
         rootCommand.SetHandler(() => StartCommand.Execute("info"));
 
