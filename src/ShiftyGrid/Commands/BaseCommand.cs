@@ -41,7 +41,7 @@ public abstract class BaseCommand
 
         if (!await IsServerRunningAsync(client))
         {
-            Console.WriteLine("Error: ShiftyGrid server is not running. Please start the server first.");
+            Console.WriteLine("ShiftyGrid server is not running. Please start the server first.");
             return;
         }
 
@@ -62,7 +62,6 @@ public abstract class BaseCommand
                 Logger.Info($"Error: {response.Message}");
 
             Logger.Info($"Error: {response.Message}");
-            return;
         }
     }
 

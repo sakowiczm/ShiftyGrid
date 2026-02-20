@@ -68,3 +68,5 @@ WINDOWPLACEMENT
 GetWindowPlacement
 GetAncestor
 GetWindowLong
+
+FreeConsole

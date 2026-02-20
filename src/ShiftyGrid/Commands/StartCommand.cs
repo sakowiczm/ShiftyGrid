@@ -85,6 +85,14 @@ public static class StartCommand
 
         Logger.Info("IPC server started, entering message loop");
 
+        // Detach from console to prevent forced termination when console closes
+        // All early validation and startup messages have been displayed
+        if (ConsoleManager.IsAttached)
+        {
+            ConsoleManager.DetachFromConsole();
+            Logger.Info("Detached from parent console");
+        }
+
         // Message loop - continues until _shouldExit is set
         // This pump serves both IPC and keyboard events
         while (!_shouldExit && PInvoke.GetMessage(out var msg, HWND.Null, 0, 0))
