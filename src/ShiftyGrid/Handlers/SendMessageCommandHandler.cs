@@ -13,7 +13,7 @@ internal class SendMessageCommandHandler : RequestHandler<string>
             return Response.CreateError("No message provided");
         }
 
-        Console.WriteLine($"[IPC Message] {data}");
+        //Console.WriteLine($"[IPC Message] {data}");
         Logger.Info($"Message received: {data}");
         return Response.CreateSuccess($"Message displayed: {data}");
     }

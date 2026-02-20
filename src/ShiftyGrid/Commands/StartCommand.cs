@@ -2,6 +2,7 @@ using ShiftyGrid.Common;
 using ShiftyGrid.Configuration;
 using ShiftyGrid.Handlers;
 using ShiftyGrid.Keyboard;
+using ShiftyGrid.Keyboard.Helpers;
 using ShiftyGrid.Keyboard.Models;
 using ShiftyGrid.Server;
 using System.CommandLine;
@@ -28,6 +29,7 @@ public static class StartCommand
     }
 
     private static IpcServer? _ipcServer;
+    private static IpcClient? _ipcClient;
     private static KeyboardEngine? _keyboardEngine;
     private static bool _shouldExit;
     private static uint _mainThreadId;
@@ -49,8 +51,8 @@ public static class StartCommand
 
         if (!instanceManager.IsSingleInstance())
         {
-            Console.WriteLine("Another instance is already running. Exiting.");
-            Logger.Warning("Another instance is already running. Exiting.");
+            Console.WriteLine("Server is already running.");
+            Logger.Warning("Server is already running.");
             Environment.Exit(1);
         }
 
@@ -67,124 +69,15 @@ public static class StartCommand
         _ipcServer = new IpcServer(handlerRegistry.Handle);
         _ipcServer.Start();
 
+        // Create shared IPC client for keyboard shortcuts
+        _ipcClient = new IpcClient();
+
         // Initialize keyboard engine
         _keyboardEngine = new KeyboardEngine(300);
         _keyboardEngine.ShortcutTriggered += OnShortcutTriggered;
 
-        // todo: vkey - definition
-        // todo: ExitMode in constructor?
-        // todo: actionId for mode predefined in RegisterMode? 
-        // todo: id maybe just Guid?
-        
         // Register shortcuts
-
-        // Create move mode with real activation keys
-        var moveMode = new ModeDefinition(
-            id: "move_mode",
-            name: "Move Mode",
-            timeoutMs: 5000,
-            allowEscape: true
-        );
-
-        // Add mode shortcuts
-        moveMode.Shortcuts.Add(new ShortcutDefinition(
-            id: "dbl_ctrl_1",
-            keyCombination: new KeyCombination(0x31, ModifierKeys.None), // Key "1"
-            actionId: "move-left-top",
-            scope: ShortcutScope.Global,
-            blockKey: true
-        )
-        { ExitMode = true });
-
-        moveMode.Shortcuts.Add(new ShortcutDefinition(
-            id: "dbl_ctrl_2",
-            keyCombination: new KeyCombination(0x32, ModifierKeys.None), // Key "2"
-            actionId: "move-right-top",
-            scope: ShortcutScope.Global,
-            blockKey: true
-        )
-        { ExitMode = true });
-
-        moveMode.Shortcuts.Add(new ShortcutDefinition(
-            id: "dbl_ctrl_3",
-            keyCombination: new KeyCombination(0x33, ModifierKeys.None), // Key "3"
-            actionId: "move-left-bottom",
-            scope: ShortcutScope.Global,
-            blockKey: true
-        )
-        { ExitMode = true });
-
-        moveMode.Shortcuts.Add(new ShortcutDefinition(
-            id: "dbl_ctrl_4",
-            keyCombination: new KeyCombination(0x34, ModifierKeys.None), // Key "4"
-            actionId: "move-right-bottom",
-            scope: ShortcutScope.Global,
-            blockKey: true
-        )
-        { ExitMode = true });
-
-        moveMode.Shortcuts.Add(new ShortcutDefinition(
-            id: "dbl_ctrl_q",
-            keyCombination: new KeyCombination(0x51, ModifierKeys.None), // Key "q"
-            actionId: "move-left-half",
-            scope: ShortcutScope.Global,
-            blockKey: true
-        )
-        { ExitMode = true });
-
-        moveMode.Shortcuts.Add(new ShortcutDefinition(
-            id: "dbl_ctrl_w",
-            keyCombination: new KeyCombination(0x57, ModifierKeys.None), // Key "w"
-            actionId: "move-right-half",
-            scope: ShortcutScope.Global,
-            blockKey: true
-        )
-        { ExitMode = true });
-
-        moveMode.Shortcuts.Add(new ShortcutDefinition(
-            id: "ctrl_shift_s_s",
-            keyCombination: new KeyCombination(0x53, ModifierKeys.None), // Key "s"
-            actionId: "move-center",
-            scope: ShortcutScope.Global,
-            blockKey: true
-        )
-        { ExitMode = true });
-
-        moveMode.Shortcuts.Add(new ShortcutDefinition(
-            id: "ctrl_shift_s_space",
-            keyCombination: new KeyCombination(0x20, ModifierKeys.None), // Key "space"
-            actionId: "move-center-wide",
-            scope: ShortcutScope.Global,
-            blockKey: true
-        )
-        { ExitMode = true });
-
-        moveMode.Shortcuts.Add(new ShortcutDefinition(
-            id: "ctrl_shift_s_space",
-            keyCombination: new KeyCombination(0x46, ModifierKeys.None), // Key "f"
-            actionId: "move-full",
-            scope: ShortcutScope.Global,
-            blockKey: true
-        )
-        { ExitMode = true });
-
-        // Create and register activation shortcut using factory method
-        var activationShortcut = moveMode.CreateActivationShortcut(
-                new KeyCombination(0x53, ModifierKeys.Control | ModifierKeys.Shift) // Ctrl+Shift+S
-            );
-        _keyboardEngine.RegisterShortcut(activationShortcut);
-
-        // Register the mode with the engine
-        _keyboardEngine.RegisterMode(moveMode);
-
-        Console.WriteLine($"Registered mode: {moveMode.Name} ({moveMode.Shortcuts.Count} shortcuts)");
-
-
-
-
-
-
-
+        KeyboardRegisterMoveMode();
 
         // Start keyboard engine (hook installed on main thread)
         _keyboardEngine.Start();
@@ -207,45 +100,102 @@ public static class StartCommand
         _ipcServer?.Dispose();
     }
 
+    private static void KeyboardRegisterMoveMode()
+    {
+        // todo: better handling id/action
+
+        // Create move mode with real activation keys
+        var moveMode = new ModeDefinition(
+            id: "move_mode",
+            name: "Move Mode",
+            timeoutMs: 5000,
+            allowEscape: true
+        );
+
+        // Add mode shortcuts
+        moveMode.Shortcuts.Add(new ShortcutDefinition(
+            id: "move-mode-left-half",
+            keyCombination: new KeyCombination(Keys.VK_1, ModifierKeys.None),
+            actionId: "move-mode-left-half",
+            scope: ShortcutScope.Global,
+            blockKey: true,
+            exitMode: true
+        ));
+
+        moveMode.Shortcuts.Add(new ShortcutDefinition(
+            id: "move-mode-right-half",
+            keyCombination: new KeyCombination(Keys.VK_2, ModifierKeys.None),
+            actionId: "move-mode-right-half",
+            scope: ShortcutScope.Global,
+            blockKey: true,
+            exitMode: true
+        ));
+
+        moveMode.Shortcuts.Add(new ShortcutDefinition(
+            id: "move-mode-center",
+            keyCombination: new KeyCombination(Keys.VK_S, ModifierKeys.None),
+            actionId: "move-mode-center",
+            scope: ShortcutScope.Global,
+            blockKey: true,
+            exitMode: true
+        ));
+
+        moveMode.Shortcuts.Add(new ShortcutDefinition(
+            id: "move-mode-center-wide",
+            keyCombination: new KeyCombination(Keys.VK_SPACE, ModifierKeys.None),
+            actionId: "move-mode-center-wide",
+            scope: ShortcutScope.Global,
+            blockKey: true,
+            exitMode: true
+        ));
+
+        moveMode.Shortcuts.Add(new ShortcutDefinition(
+            id: "move-mode-full",
+            keyCombination: new KeyCombination(Keys.VK_F, ModifierKeys.None),
+            actionId: "move-mode-full",
+            scope: ShortcutScope.Global,
+            blockKey: true,
+            exitMode: true
+        ));
+
+        // Create and register activation shortcut using factory method
+        var activationShortcut = moveMode.CreateActivationShortcut(
+                new KeyCombination(Keys.VK_D, ModifierKeys.Control | ModifierKeys.Shift)
+            );
+
+        _keyboardEngine!.RegisterShortcut(activationShortcut);
+
+        // Register the mode with the engine
+        _keyboardEngine.RegisterMode(moveMode);
+
+        Console.WriteLine($"Registered mode: {moveMode.Name} ({moveMode.Shortcuts.Count} shortcuts)");
+    }
+
     private static async void OnShortcutTriggered(object? sender, KeyboardTriggeredEventArgs e)
     {
         Logger.Info($"Shortcut triggered: {e.Shortcut.Id} (Action: {e.Shortcut.ActionId})");
 
-        // todo: execute action based on e.Shortcut.ActionId
-        // todo: make better abstraction for different types of commands ipc commands - can be triggered by cli or keyboard shortcuts or something else (e.g sheduler?)
-
-        // todo: Position reaname to Placement?
+        // todo: consider naming?Position reaname to Placement?
+        // todo: better wiring of actions to commands
 
         try
         {
             switch (e.Shortcut.ActionId)
             {
-                case "move-left-top":
-                    await new MoveCommand().SendAsync(Position.LeftTop);
+                case "move-mode-left-half":
+                    await SendMoveRequestAsync(Position.LeftHalf);
                     break;
-                case "move-right-top":
-                    await new MoveCommand().SendAsync(Position.RightTop);
+                case "move-mode-right-half":
+                    await SendMoveRequestAsync(Position.RightHalf);
                     break;
-                case "move-left-bottom":
-                    await new MoveCommand().SendAsync(Position.LeftBottom);
+                case "move-mode-center":
+                    await SendMoveRequestAsync(Position.Center);
                     break;
-                case "move-right-bottom":
-                    await new MoveCommand().SendAsync(Position.RightBottom);
+                case "move-mode-center-wide":
+                    await SendMoveRequestAsync(Position.CenterWide);
                     break;
-                case "move-left-half":
-                    await new MoveCommand().SendAsync(Position.LeftHalf);
-                    break;
-                case "move-right-half":
-                    await new MoveCommand().SendAsync(Position.RightHalf);
-                    break;
-                case "move-center":
-                    await new MoveCommand().SendAsync(Position.Center);
-                    break;
-                case "move-center-wide":
-                    await new MoveCommand().SendAsync(Position.CenterWide);
-                    break;
-                case "move-full":
-                    await new MoveCommand().SendAsync(Position.Full);
+                case "move-mode-full":
+                    await SendMoveRequestAsync(Position.Full);
                     break;
             }
         }
@@ -253,6 +203,40 @@ public static class StartCommand
         {
             Logger.Error($"[Keyboard Action] Error executing {e.Shortcut.ActionId}: {ex.Message}");
         }
+    }
 
+    // We starting this with IpcServer - so in theory we don't need to check if server is running.
+    // And in this case we don't need individual IpcClient for command.
+    private static async Task SendMoveRequestAsync(Position position)
+    {
+        // todo: unify this with BaseCommand
+
+        if (_ipcClient == null)
+        {
+            Logger.Error("[Keyboard Action] IPC client not initialized");
+            return;
+        }
+
+        try
+        {
+            var request = new Request
+            {
+                Command = "move",
+                Data = System.Text.Json.JsonSerializer.SerializeToElement(
+                    position,
+                    IpcJsonContext.Default.Position)
+            };
+
+            var response = await _ipcClient.SendRequestAsync(request);
+
+            if (!response.Success)
+            {
+                Logger.Error($"[Keyboard Action] Move failed: {response.Message}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"[Keyboard Action] Error sending move request: {ex.Message}", ex);
+        }
     }
 }

@@ -52,9 +52,15 @@ public abstract class BaseCommand
         if (response.Success)
         {
             Logger.Info($"Success: {response.Message}");
+
+            if (ConsoleManager.IsAttached)
+                Console.WriteLine($"Success: {response.Message}");
         }
         else
         {
+            if (ConsoleManager.IsAttached)
+                Logger.Info($"Error: {response.Message}");
+
             Logger.Info($"Error: {response.Message}");
             return;
         }

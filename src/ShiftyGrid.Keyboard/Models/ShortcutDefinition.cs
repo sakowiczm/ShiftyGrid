@@ -35,15 +35,16 @@ public class ShortcutDefinition
     /// <exception cref="ArgumentNullException">
     /// Thrown if <paramref name="id"/> or <paramref name="actionId"/> is null.
     /// </exception>
-    public ShortcutDefinition(string id, KeyCombination keyCombination, string actionId, ShortcutScope scope, bool blockKey)
+    public ShortcutDefinition(string id, KeyCombination keyCombination, string actionId, ShortcutScope scope, bool blockKey, bool exitMode = false)
     {
-        // if id not passed / defined can use Guid.ToString?
+        // todo: consider - if id not passed / defined can use Guid.ToString?
 
         Id = id ?? throw new ArgumentNullException(nameof(id));
         KeyCombination = keyCombination;
         ActionId = actionId ?? throw new ArgumentNullException(nameof(actionId));
         Scope = scope;
         BlockKey = blockKey;
+        ExitMode = exitMode;
     }
 
     /// <summary>
