@@ -23,7 +23,7 @@ internal class Program
         rootCommand.AddCommand(new StatusCommand().Create());
         rootCommand.AddCommand(new AboutCommand().Create());
 
-        rootCommand.SetHandler(() => StartCommand.Execute("info"));
+        rootCommand.SetHandler(() => StartCommand.Execute(null, "info"));
 
         return rootCommand;
     }    

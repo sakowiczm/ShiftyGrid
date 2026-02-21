@@ -7,25 +7,54 @@ internal enum LogLevel
     None = 0,
     Error = 1,
     Warn = 2,
-    Debug = 3,
-    Info = 4,
+    Info = 3,
+    Debug = 4
 }
 
 internal static class Logger
 {
+#pragma warning disable CS8618
+
+    private static string LogFileName => $"ShiftyGrid_{DateTime.Now:yyyyMMdd}.log";
     public static string LogFilePath { get; private set; }
     public static LogLevel MinimumLogLevel { get; private set; }
 
-    private static readonly Channel<string> _logChannel;
-    private static readonly Task _loggingTask;
-    private static readonly CancellationTokenSource _cancellationTokenSource;
+    private static Channel<string> _logChannel;
+    private static Task _loggingTask;
+    private static CancellationTokenSource _cancellationTokenSource;
 
-    static Logger()
+#pragma warning restore CS8618
+
+    public static void Initialize(string? logPath = null, LogLevel logLevel = LogLevel.Info)
     {
-        var exePath = Environment.ProcessPath ?? AppContext.BaseDirectory;
-        var exeDir = Path.GetDirectoryName(exePath) ?? AppContext.BaseDirectory;
-        var timestamp = DateTime.Now.ToString("yyyyMMdd");
-        LogFilePath = Path.Combine(exeDir, $"ShiftyGrid_{timestamp}.log");
+        MinimumLogLevel = logLevel;
+
+        if (logLevel == LogLevel.None)
+        {
+            LogFilePath = string.Empty;
+            return;
+        }
+
+        if (string.IsNullOrEmpty(logPath))
+            return;
+
+        // Convert relative path to absolute path
+        var absoluteLogsPath = Path.IsPathRooted(logPath)
+            ? logPath
+            : Path.GetFullPath(logPath);
+
+        if (!Directory.Exists(absoluteLogsPath))
+        {
+            Console.WriteLine($"Error: Log directory does not exist: {absoluteLogsPath}. \r\nUsing default path.");
+
+            var exePath = Environment.ProcessPath ?? AppContext.BaseDirectory;
+            var exeDir = Path.GetDirectoryName(exePath) ?? AppContext.BaseDirectory;
+            LogFilePath = Path.Combine(exeDir, LogFileName);
+        }
+        else
+        {
+            LogFilePath = Path.Combine(absoluteLogsPath, LogFileName);
+        }
 
         _logChannel = Channel.CreateBounded<string>(new BoundedChannelOptions(1000)
         {
@@ -37,23 +66,6 @@ internal static class Logger
         _loggingTask = Task.Run(ProcessLogQueueAsync);
 
         AppDomain.CurrentDomain.ProcessExit += OnProcessExit;
-    }
-
-    public static void Initialize(string? logDirectory = null, LogLevel logLevel = LogLevel.Info)
-    {
-        MinimumLogLevel = logLevel;
-        
-        if (logLevel == LogLevel.None)
-        {
-            LogFilePath = string.Empty;
-            return;
-        }
-
-        if (string.IsNullOrEmpty(logDirectory))
-            return;
-
-        var timestamp = DateTime.Now.ToString("yyyyMMdd");
-        LogFilePath = Path.Combine(logDirectory, $"ShiftyGrid_{timestamp}.log");
     }
 
     private static async Task ProcessLogQueueAsync()

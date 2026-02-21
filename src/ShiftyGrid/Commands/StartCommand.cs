@@ -17,13 +17,22 @@ public static class StartCommand
     {
         var startCommand = new Command("start", "Start the ShiftyGrid server instance");
 
+        // todo: add --config
+
         var logLevelOption = new Option<string>(
             aliases: ["--log-level"],
             getDefaultValue: () => "info",
-            description: "Console log level: none, debug, info, warn, error");
+            description: "Log level: none, debug, info, warn, error");
+
+        var logsPathOption = new Option<string?>(
+            aliases: ["--logs", "-l"],
+            description: "Directory for log files (default: executable directory). Can be relative or absolute path.")
+        {
+            ArgumentHelpName = "path"
+        };
 
         startCommand.AddOption(logLevelOption);
-        startCommand.SetHandler(Execute, logLevelOption);
+        startCommand.SetHandler(Execute, logsPathOption, logLevelOption);
 
         return startCommand;
     }
@@ -37,15 +46,17 @@ public static class StartCommand
     /// <summary>
     /// Starts IPC server instance with integrated keyboard engine
     /// </summary>
-    public static void Execute(string logLevel)
+    public static void Execute(string? logPath, string logLevel)
     {
         // Capture the main thread ID for exit signaling
         _mainThreadId = PInvoke.GetCurrentThreadId();
 
-        Logger.Initialize(null, Logger.GetLogLevel(logLevel));
+        Logger.Initialize(logPath, Logger.GetLogLevel(logLevel));
 
         Logger.Info("ShiftyGrid Starting");
+        Console.WriteLine("ShiftyGrid Starting");
         Logger.Info($"OS Version: {Environment.OSVersion}");
+        Console.WriteLine($"OS Version: {Environment.OSVersion}");
 
         using var instanceManager = new InstanceManager();
 
@@ -82,16 +93,9 @@ public static class StartCommand
         // Start keyboard engine (hook installed on main thread)
         _keyboardEngine.Start();
         Logger.Info("Keyboard engine started");
-
         Logger.Info("IPC server started, entering message loop");
 
-        // Detach from console to prevent forced termination when console closes
-        // All early validation and startup messages have been displayed
-        if (ConsoleManager.IsAttached)
-        {
-            ConsoleManager.DetachFromConsole();
-            Logger.Info("Detached from parent console");
-        }
+        ConsoleManager.Detach();
 
         // Message loop - continues until _shouldExit is set
         // This pump serves both IPC and keyboard events
