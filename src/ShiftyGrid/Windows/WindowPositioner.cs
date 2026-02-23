@@ -1,8 +1,8 @@
+using ShiftyGrid.Common;
+using ShiftyGrid.Configuration;
 using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.UI.WindowsAndMessaging;
-using ShiftyGrid.Common;
-using ShiftyGrid.Configuration;
 
 namespace ShiftyGrid.Windows;
 
@@ -11,10 +11,6 @@ namespace ShiftyGrid.Windows;
 //  do we need some global Grid object or each grid position will be calculated on the fly? e.g good when switching on different monitors
         
         
-// todo: something else can also supply what is the applicable foreground window
-
-// todo: position 4 has some sizing issues
-
 
 public class WindowPositioner
 {
@@ -35,8 +31,16 @@ public class WindowPositioner
         Logger.Debug($"Positioning window: {window.Text} (Handle: {window.Handle})");
         Logger.Debug($"Monitor work area: ({window.MonitorRect.left}, {window.MonitorRect.top}) - ({window.MonitorRect.right}, {window.MonitorRect.bottom})");
 
-        // todo: offset may not need to be calculated for every window
-        Logger.Debug($"Invisible border offsets - Left: {window.Offset.left}, Top: {window.Offset.top}, Right: {window.Offset.right}, Bottom: {window.Offset.bottom}");
+        var offset = new RECT
+        {
+            left = window.Rect.left - window.ExtendedRect.left,
+            top = window.Rect.top - window.ExtendedRect.top,
+            right = window.ExtendedRect.right - window.Rect.right,
+            bottom = window.ExtendedRect.bottom - window.Rect.bottom
+        };
+
+
+        Logger.Debug($"Invisible border offsets - Left: {offset.left}, Top: {offset.top}, Right: {offset.right}, Bottom: {offset.bottom}");
 
         var (startX, startY, endX, endY) = position;
         Logger.Debug($"Grid position: ({startX},{startY}) to ({endX},{endY})");
@@ -57,10 +61,10 @@ public class WindowPositioner
         var gapHeight = visualHeight - (gap * 2);
 
         // Adjust for invisible borders to achieve visual alignment
-        var x = gapX - window.Offset.left;
-        var y = gapY - window.Offset.top;
-        var width = gapWidth + window.Offset.left + window.Offset.right;
-        var height = gapHeight + window.Offset.top + window.Offset.bottom;
+        var x = gapX - offset.left;
+        var y = gapY - offset.top;
+        var width = gapWidth + offset.left + offset.right;
+        var height = gapHeight + offset.top + offset.bottom;
 
         Logger.Debug($"Visual position: ({visualX}, {visualY}) size: {visualWidth}x{visualHeight}");
         Logger.Debug($"With {gap}px gap: ({gapX}, {gapY}) size: {gapWidth}x{gapHeight}");

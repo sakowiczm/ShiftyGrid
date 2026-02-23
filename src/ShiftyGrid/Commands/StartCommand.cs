@@ -19,11 +19,6 @@ public static class StartCommand
 
         // todo: add --config
 
-        var logLevelOption = new Option<string>(
-            aliases: ["--log-level"],
-            getDefaultValue: () => "info",
-            description: "Log level: none, debug, info, warn, error");
-
         var logsPathOption = new Option<string?>(
             aliases: ["--logs", "-l"],
             description: "Directory for log files (default: executable directory). Can be relative or absolute path.")
@@ -94,7 +89,8 @@ public static class StartCommand
         _keyboardEngine.ShortcutTriggered += OnShortcutTriggered;
 
         // Register shortcuts
-        KeyboardRegisterMoveMode();
+        GridPositioningKeyboardShortucts();
+        SwapWindowsKeyboardShortcuts();
 
         // Start keyboard engine (hook installed on main thread)
         _keyboardEngine.Start();
@@ -118,7 +114,54 @@ public static class StartCommand
         _ipcServer?.Dispose();
     }
 
-    private static void KeyboardRegisterMoveMode()
+    private static void SwapWindowsKeyboardShortcuts()
+    {
+        // todo: better handling id/action
+
+        // Swap Left    Ctrl + Alt + Left Arrow
+        // Swap Right   Ctrl + Alt + Right Arrow
+        // Swap Up    Ctrl + Alt + Up Arrow
+        // Swap Down   Ctrl + Alt + Down Arrow
+
+        var swapLeft = new ShortcutDefinition(
+            id: "swap-left",
+            keyCombination: new KeyCombination(Keys.VK_LEFT, ModifierKeys.Control | ModifierKeys.Alt),
+            actionId: "swap-left",
+            scope: ShortcutScope.Global,
+            blockKey: true
+        );
+
+        var swapRight = new ShortcutDefinition(
+            id: "swap-right",
+            keyCombination: new KeyCombination(Keys.VK_RIGHT, ModifierKeys.Control | ModifierKeys.Alt),
+            actionId: "swap-right",
+            scope: ShortcutScope.Global,
+            blockKey: true
+        );
+
+        var swapUp = new ShortcutDefinition(
+            id: "swap-up",
+            keyCombination: new KeyCombination(Keys.VK_UP, ModifierKeys.Control | ModifierKeys.Alt),
+            actionId: "swap-up",
+            scope: ShortcutScope.Global,
+            blockKey: true
+        );
+
+        var swapDown = new ShortcutDefinition(
+            id: "swap-down",
+            keyCombination: new KeyCombination(Keys.VK_DOWN, ModifierKeys.Control | ModifierKeys.Alt),
+            actionId: "swap-down",
+            scope: ShortcutScope.Global,
+            blockKey: true
+        );
+
+        _keyboardEngine!.RegisterShortcut(swapLeft);
+        _keyboardEngine!.RegisterShortcut(swapRight);
+        _keyboardEngine!.RegisterShortcut(swapUp);
+        _keyboardEngine!.RegisterShortcut(swapDown);
+    }
+
+    private static void GridPositioningKeyboardShortucts()
     {
         // todo: better handling id/action
 
@@ -215,6 +258,20 @@ public static class StartCommand
                 case "move-mode-full":
                     await SendMoveRequestAsync(Position.Full);
                     break;
+
+                case "swap-left":
+                    await SendSwapRequestAsync(Direction.Left);
+                    break;
+                case "swap-right":
+                    await SendSwapRequestAsync(Direction.Right);
+                    break;
+                case "swap-up":
+                    await SendSwapRequestAsync(Direction.Up);
+                    break;
+                case "swap-down":
+                    await SendSwapRequestAsync(Direction.Down);
+                    break;
+
             }
         }
         catch (Exception ex)
@@ -255,6 +312,39 @@ public static class StartCommand
         catch (Exception ex)
         {
             Logger.Error($"[Keyboard Action] Error sending move request: {ex.Message}", ex);
+        }
+    }
+
+    private static async Task SendSwapRequestAsync(Direction direction)
+    {
+        // todo: unify this with BaseCommand
+
+        if (_ipcClient == null)
+        {
+            Logger.Error("[Keyboard Action] IPC client not initialized");
+            return;
+        }
+
+        try
+        {
+            var request = new Request
+            {
+                Command = "swap",
+                Data = System.Text.Json.JsonSerializer.SerializeToElement(
+                    direction,
+                    IpcJsonContext.Default.Direction)
+            };
+
+            var response = await _ipcClient.SendRequestAsync(request);
+
+            if (!response.Success)
+            {
+                Logger.Error($"[Keyboard Action] Swap failed: {response.Message}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"[Keyboard Action] Error sending swap request: {ex.Message}", ex);
         }
     }
 }

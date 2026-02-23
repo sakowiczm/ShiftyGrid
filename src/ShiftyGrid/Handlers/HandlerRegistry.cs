@@ -18,6 +18,7 @@ internal class HandlerRegistry : IRequestHandler
         _handlers[SendMessageCommand.Name] = new SendMessageCommandHandler();
         _handlers[StatusCommand.Name] = new StatusCommandHandler();
         _handlers[MoveCommand.Name] = new MoveCommandHandler();
+        _handlers[SwapCommand.Name] = new SwapCommandHandler();
     }
 
     public Response Handle(Request request)
