@@ -36,24 +36,25 @@ internal static class Logger
         }
 
         if (string.IsNullOrEmpty(logPath))
-            return;
-
-        // Convert relative path to absolute path
-        var absoluteLogsPath = Path.IsPathRooted(logPath)
-            ? logPath
-            : Path.GetFullPath(logPath);
-
-        if (!Directory.Exists(absoluteLogsPath))
         {
-            Console.WriteLine($"Error: Log directory does not exist: {absoluteLogsPath}. \r\nUsing default path.");
-
-            var exePath = Environment.ProcessPath ?? AppContext.BaseDirectory;
-            var exeDir = Path.GetDirectoryName(exePath) ?? AppContext.BaseDirectory;
-            LogFilePath = Path.Combine(exeDir, LogFileName);
+            LogFilePath = GetDefaultLogFilePath();
         }
         else
         {
-            LogFilePath = Path.Combine(absoluteLogsPath, LogFileName);
+            // Convert relative path to absolute path
+            var absoluteLogsPath = Path.IsPathRooted(logPath)
+                ? logPath
+                : Path.GetFullPath(logPath);
+
+            if (!Directory.Exists(absoluteLogsPath))
+            {
+                Console.WriteLine($"Error: Log directory does not exist: {absoluteLogsPath}. \r\nUsing default path.");
+                LogFilePath = GetDefaultLogFilePath();
+            }
+            else
+            {
+                LogFilePath = Path.Combine(absoluteLogsPath, LogFileName);
+            }
         }
 
         _logChannel = Channel.CreateBounded<string>(new BoundedChannelOptions(1000)
@@ -66,6 +67,13 @@ internal static class Logger
         _loggingTask = Task.Run(ProcessLogQueueAsync);
 
         AppDomain.CurrentDomain.ProcessExit += OnProcessExit;
+    }
+
+    private static string GetDefaultLogFilePath()
+    {
+        var exePath = Environment.ProcessPath ?? AppContext.BaseDirectory;
+        var exeDir = Path.GetDirectoryName(exePath) ?? AppContext.BaseDirectory;
+        return Path.Combine(exeDir, LogFileName);
     }
 
     private static async Task ProcessLogQueueAsync()

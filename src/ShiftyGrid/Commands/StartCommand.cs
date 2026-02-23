@@ -31,6 +31,12 @@ public static class StartCommand
             ArgumentHelpName = "path"
         };
 
+        var logLevelOption = new Option<string>(
+            aliases: ["--log-level"],
+            getDefaultValue: () => "info",
+            description: "Log level: none, debug, info, warn, error");
+
+        startCommand.AddOption(logsPathOption);
         startCommand.AddOption(logLevelOption);
         startCommand.SetHandler(Execute, logsPathOption, logLevelOption);
 
