@@ -44,10 +44,12 @@ public class IpcServer : IDisposable
 
             while (!_cancellationTokenSource.Token.IsCancellationRequested)
             {
+                NamedPipeServerStream? pipeServer = null;
+
                 try
                 {
                     // Create a new pipe instance for this connection
-                    using var pipeServer = new NamedPipeServerStream(
+                    pipeServer = new NamedPipeServerStream(
                         PipeName,
                         PipeDirection.InOut,
                         NamedPipeServerStream.MaxAllowedServerInstances,
@@ -61,21 +63,43 @@ public class IpcServer : IDisposable
                     connectTask.GetAwaiter().GetResult();
 
                     if (_cancellationTokenSource.Token.IsCancellationRequested)
+                    {
+                        pipeServer.Dispose();
                         break;
+                    }
 
                     Logger.Debug("Client connected");
 
-                    // Handle the client connection
-                    HandleClientConnection(pipeServer);
+                    // Process each connection on a background thread - free up resources for the next connection
+                    var taskPipeServer = pipeServer;
+                    pipeServer = null; // Transfer ownership to task
+
+                    _ = Task.Run(() =>
+                    {
+                        try
+                        {
+                            HandleClientConnection(taskPipeServer);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Error($"Error handling connection in background task: {ex.Message}", ex);
+                        }
+                        finally
+                        {
+                            taskPipeServer?.Dispose();
+                        }
+                    }, _cancellationTokenSource.Token);
                 }
                 catch (OperationCanceledException)
                 {
                     // Expected when shutting down
+                    pipeServer?.Dispose();
                     break;
                 }
                 catch (Exception ex)
                 {
                     Logger.Error($"Error in IPC server loop: {ex.Message}", ex);
+                    pipeServer?.Dispose();
 
                     // Don't spin too fast on errors
                     if (!_cancellationTokenSource.Token.IsCancellationRequested)
