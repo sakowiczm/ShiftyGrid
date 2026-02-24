@@ -40,13 +40,15 @@ public class ShortcutDetector
                 return new List<ShortcutDefinition>();
             }
 
-            // If in a mode, only return shortcuts for that mode
+            // If in a mode, return shortcuts for that mode AND mode activation shortcuts
             if (activeModeId != null)
             {
-                return matches.Where(s => s.ModeId == activeModeId).ToList();
+                return matches.Where(s =>
+                    s.ModeId == activeModeId ||
+                    (s.ModeId == null && s.ActionId.StartsWith("enter_mode:"))).ToList();
             }
 
-            // Otherwise return shortcuts not bound to any mode
+            // Otherwise return shortcuts not bound to any mode (including mode activation shortcuts)
             return matches.Where(s => s.ModeId == null).ToList();
         }
     }
