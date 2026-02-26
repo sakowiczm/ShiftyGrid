@@ -1,4 +1,5 @@
 using ShiftyGrid.Keyboard.Detection;
+using ShiftyGrid.Keyboard.Helpers;
 using ShiftyGrid.Keyboard.Hooks;
 using ShiftyGrid.Keyboard.Models;
 using ShiftyGrid.Keyboard.Modes;
@@ -13,6 +14,7 @@ public class KeyboardEngine : IDisposable
     private readonly DoubleTapDetector _doubleTapDetector;
     private bool _isStarted;
     private readonly object _lock = new();
+    private readonly HashSet<int> _blockedKeys = new();
 
     public event EventHandler<KeyboardTriggeredEventArgs>? ShortcutTriggered;
     public event EventHandler<ModeEventArgs>? ModeEntered;
@@ -30,6 +32,7 @@ public class KeyboardEngine : IDisposable
         _doubleTapDetector = new DoubleTapDetector(doubleTapWindowMs);
 
         _keyboardHook.KeyDown += OnKeyDown;
+        _keyboardHook.KeyUp += OnKeyUp;
         _modeManager.ModeEntered += (s, e) => ModeEntered?.Invoke(this, e);
         _modeManager.ModeExited += (s, e) => ModeExited?.Invoke(this, e);
         _doubleTapDetector.DoubleTapDetected += OnDoubleTapDetected;
@@ -91,7 +94,7 @@ public class KeyboardEngine : IDisposable
         _doubleTapDetector.ProcessKeyPress(e.VirtualKeyCode);
 
         // Check for ESC to cancel mode
-        if (e.VirtualKeyCode == 0x1B && _modeManager.IsInMode) // VK_ESCAPE
+        if (e.VirtualKeyCode == Keys.VK_ESCAPE && _modeManager.IsInMode)
         {
             var mode = _modeManager.GetMode(_modeManager.CurrentModeId!);
             if (mode?.AllowEscape == true)
@@ -138,7 +141,23 @@ public class KeyboardEngine : IDisposable
                 if (shortcut.BlockKey)
                 {
                     e.ShouldBlock = true;
+                    lock (_lock)
+                    {
+                        _blockedKeys.Add(e.VirtualKeyCode);
+                    }
                 }
+            }
+        }
+    }
+
+    private void OnKeyUp(object? sender, KeyEventArgs e)
+    {
+        lock (_lock)
+        {
+            if (_blockedKeys.Contains(e.VirtualKeyCode))
+            {
+                e.ShouldBlock = true;
+                _blockedKeys.Remove(e.VirtualKeyCode);
             }
         }
     }
