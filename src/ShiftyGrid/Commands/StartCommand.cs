@@ -71,6 +71,8 @@ public static class StartCommand
         Console.WriteLine("ShiftyGrid server started. Use 'ShiftyGrid.exe exit' to stop.");
         Logger.Info("Starting IPC server...");
 
+        DpiManager.Enable();
+
         // Create request handler registry with state management callbacks
         var handlerRegistry = new HandlerRegistry(
             setShouldExit: value => _shouldExit = value,
