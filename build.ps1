@@ -32,6 +32,23 @@ if (Test-Path $PublishOutputDir)
     {
         Write-Host "`nOutput directory '$OutputDir' is not empty." -ForegroundColor Yellow
 
+        # Try to stop any running instance of the app
+        $exePath = Join-Path $PublishOutputDir "ShiftyGrid.exe"
+        if (Test-Path $exePath)
+        {
+            Write-Host "Attempting to stop running app instance..." -ForegroundColor Yellow
+            try
+            {
+                & $exePath exit | Out-Null
+                Start-Sleep -Milliseconds 500
+                Write-Host "Sent exit command to app." -ForegroundColor Gray
+            }
+            catch
+            {
+                Write-Host "Could not send exit command (app may not be running)." -ForegroundColor Gray
+            }
+        }
+
         if ($Force)
         {
             Write-Host "Force parameter specified. Cleaning output directory..." -ForegroundColor Yellow
