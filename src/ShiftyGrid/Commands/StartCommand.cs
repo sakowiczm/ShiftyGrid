@@ -93,6 +93,7 @@ public static class StartCommand
         // Register shortcuts
         GridPositioningKeyboardShortucts();
         SwapWindowsKeyboardShortcuts();
+        ResizeWindowsKeyboardShortcuts();
 
         // Start keyboard engine (hook installed on main thread)
         _keyboardEngine.Start();
@@ -234,6 +235,98 @@ public static class StartCommand
         Console.WriteLine($"Registered mode: {moveMode.Name} ({moveMode.Shortcuts.Count} shortcuts)");
     }
 
+    private static void ResizeWindowsKeyboardShortcuts()
+    {
+        // Context-aware resize (Alt + Arrow) - expands toward neighbor or shrinks when at edge
+
+        // Resize Left      Alt + Left Arrow
+        // Resize Right     Alt + Right Arrow
+        // Resize Up        Alt + Up Arrow
+        // Resize Down      Alt + Down Arrow
+
+        var expandLeft = new ShortcutDefinition(
+            id: "resize-expand-left",
+            keyCombination: new KeyCombination(Keys.VK_LEFT, ModifierKeys.Alt),
+            actionId: "resize-expand-left",
+            scope: ShortcutScope.Global,
+            blockKey: true
+        );
+
+        var expandRight = new ShortcutDefinition(
+            id: "resize-expand-right",
+            keyCombination: new KeyCombination(Keys.VK_RIGHT, ModifierKeys.Alt),
+            actionId: "resize-expand-right",
+            scope: ShortcutScope.Global,
+            blockKey: true
+        );
+
+        var expandUp = new ShortcutDefinition(
+            id: "resize-expand-up",
+            keyCombination: new KeyCombination(Keys.VK_UP, ModifierKeys.Alt),
+            actionId: "resize-expand-up",
+            scope: ShortcutScope.Global,
+            blockKey: true
+        );
+
+        var expandDown = new ShortcutDefinition(
+            id: "resize-expand-down",
+            keyCombination: new KeyCombination(Keys.VK_DOWN, ModifierKeys.Alt),
+            actionId: "resize-expand-down",
+            scope: ShortcutScope.Global,
+            blockKey: true
+        );
+
+        // todo: rename resize == expand?
+
+        _keyboardEngine!.RegisterShortcut(expandLeft);
+        _keyboardEngine!.RegisterShortcut(expandRight);
+        _keyboardEngine!.RegisterShortcut(expandUp);
+        _keyboardEngine!.RegisterShortcut(expandDown);
+
+        // Explicit shrink (Shift + Alt + Arrow) - shrinks window in arrow direction
+        // Shrink Left      Shift + Alt + Left Arrow   (shrinks from right, window moves/shrinks left)
+        // Shrink Right     Shift + Alt + Right Arrow  (shrinks from left, window moves/shrinks right)
+        // Shrink Up        Shift + Alt + Up Arrow     (shrinks from bottom, window moves/shrinks up)
+        // Shrink Down      Shift + Alt + Down Arrow   (shrinks from top, window moves/shrinks down)
+
+        var shrinkLeft = new ShortcutDefinition(
+            id: "resize-shrink-left",
+            keyCombination: new KeyCombination(Keys.VK_LEFT, ModifierKeys.Shift | ModifierKeys.Alt),
+            actionId: "resize-shrink-left",
+            scope: ShortcutScope.Global,
+            blockKey: true
+        );
+
+        var shrinkRight = new ShortcutDefinition(
+            id: "resize-shrink-right",
+            keyCombination: new KeyCombination(Keys.VK_RIGHT, ModifierKeys.Shift | ModifierKeys.Alt),
+            actionId: "resize-shrink-right",
+            scope: ShortcutScope.Global,
+            blockKey: true
+        );
+
+        var shrinkUp = new ShortcutDefinition(
+            id: "resize-shrink-up",
+            keyCombination: new KeyCombination(Keys.VK_UP, ModifierKeys.Shift | ModifierKeys.Alt),
+            actionId: "resize-shrink-up",
+            scope: ShortcutScope.Global,
+            blockKey: true
+        );
+
+        var shrinkDown = new ShortcutDefinition(
+            id: "resize-shrink-down",
+            keyCombination: new KeyCombination(Keys.VK_DOWN, ModifierKeys.Shift | ModifierKeys.Alt),
+            actionId: "resize-shrink-down",
+            scope: ShortcutScope.Global,
+            blockKey: true
+        );
+
+        _keyboardEngine!.RegisterShortcut(shrinkLeft);
+        _keyboardEngine!.RegisterShortcut(shrinkRight);
+        _keyboardEngine!.RegisterShortcut(shrinkUp);
+        _keyboardEngine!.RegisterShortcut(shrinkDown);
+    }
+
     private static async void OnShortcutTriggered(object? sender, KeyboardTriggeredEventArgs e)
     {
         Logger.Info($"Shortcut triggered: {e.Shortcut.Id} (Action: {e.Shortcut.ActionId})");
@@ -272,6 +365,32 @@ public static class StartCommand
                     break;
                 case "swap-down":
                     await SendSwapRequestAsync(Direction.Down);
+                    break;
+
+                case "resize-expand-left":
+                    await SendResizeRequestAsync(WindowResize.ExpandLeft);
+                    break;
+                case "resize-expand-right":
+                    await SendResizeRequestAsync(WindowResize.ExpandRight);
+                    break;
+                case "resize-expand-up":
+                    await SendResizeRequestAsync(WindowResize.ExpandUp);
+                    break;
+                case "resize-expand-down":
+                    await SendResizeRequestAsync(WindowResize.ExpandDown);
+                    break;
+
+                case "resize-shrink-left":
+                    await SendResizeRequestAsync(WindowResize.ShrinkRight); // Shrink from right (window gets smaller toward left)
+                    break;
+                case "resize-shrink-right":
+                    await SendResizeRequestAsync(WindowResize.ShrinkLeft); // Shrink from left (window gets smaller toward right)
+                    break;
+                case "resize-shrink-up":
+                    await SendResizeRequestAsync(WindowResize.ShrinkDown); // Shrink from bottom (window gets smaller toward top)
+                    break;
+                case "resize-shrink-down":
+                    await SendResizeRequestAsync(WindowResize.ShrinkUp); // Shrink from top (window gets smaller toward bottom)
                     break;
 
             }
@@ -347,6 +466,39 @@ public static class StartCommand
         catch (Exception ex)
         {
             Logger.Error($"[Keyboard Action] Error sending swap request: {ex.Message}", ex);
+        }
+    }
+
+    private static async Task SendResizeRequestAsync(WindowResize resize)
+    {
+        // todo: unify this with BaseCommand
+
+        if (_ipcClient == null)
+        {
+            Logger.Error("[Keyboard Action] IPC client not initialized");
+            return;
+        }
+
+        try
+        {
+            var request = new Request
+            {
+                Command = "resize",
+                Data = System.Text.Json.JsonSerializer.SerializeToElement(
+                    resize,
+                    IpcJsonContext.Default.Direction)
+            };
+
+            var response = await _ipcClient.SendRequestAsync(request);
+
+            if (!response.Success)
+            {
+                Logger.Error($"[Keyboard Action] Resize failed: {response.Message}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"[Keyboard Action] Error sending resize request: {ex.Message}", ex);
         }
     }
 }

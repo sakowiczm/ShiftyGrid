@@ -1,20 +1,49 @@
-﻿using static ABI.System.Collections.Generic.IReadOnlyDictionary_Delegates;
+﻿using ShiftyGrid.Common;
+using ShiftyGrid.Handlers;
+using ShiftyGrid.Server;
+using System.CommandLine;
 
-namespace ShiftyGrid.Commands
+namespace ShiftyGrid.Commands;
+
+internal class ResizeCommand : BaseCommand
 {
-    internal class ResizeCommand
-    {
-        // todo:
-        //  - consider different name
-        //  
-        //  Resize foreground window left or right. If adjecent window detected (not overlaping, in x pixel range) -
-        //  this window also changes it size (increase / decrease). Window cannot be resized beyond monitor boundary.
-        //  Resize is only within current monitor window is in.
-        //  
-        //  If we have 2 adjecent resized windows - we can reset the split each window get's it's half of the screen.
+    public const string Name = "resize";
 
-        //  Resize Left     Alt + Left Arrow
-        //  Resize Right    Alt +Right Arrow
-        //  Reset Split     Alt + =
+    //public static Command Create()
+    //{
+    //    var resizeCommand = new Command(Name, "Resize the foreground window");
+
+    //    var directionArgument = new Argument<string>(
+    //        name: "direction",
+    //        description: "Direction to resize: left, right, up, down")
+    //    {
+    //        Arity = ArgumentArity.ExactlyOne
+    //    };
+
+    //    resizeCommand.AddArgument(directionArgument);
+    //    resizeCommand.SetHandler(Execute, directionArgument);
+
+    //    return resizeCommand;
+    //}
+
+    public async Task Execute(Direction? direction)
+    {
+        //if (string.IsNullOrEmpty(direction)) 
+        //{
+        //    Logger.Debug("Ivalid direction.");
+        //    return;
+        //}
+
+        //Direction? resizeDirection = direction.ToLowerInvariant() switch
+        //{
+        //    "left" => Direction.Left,
+        //    "right" => Direction.Right,
+        //    "up" => Direction.Up,
+        //    "down" => Direction.Down,
+        //    _ => null
+        //};
+
+
+        await SendRequestAsync($"Resizing window {direction}", Name, direction);
     }
 }
