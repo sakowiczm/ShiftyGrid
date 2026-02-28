@@ -95,6 +95,7 @@ public static class StartCommand
         SwapWindowsKeyboardShortcuts();
         ResizeWindowsKeyboardShortcuts();
         ArrangeSplitWindowsKeyboardShortcuts();
+        PromoteWindowsKeyboardShortcuts();
 
         // Start keyboard engine (hook installed on main thread)
         _keyboardEngine.Start();
@@ -342,6 +343,20 @@ public static class StartCommand
         _keyboardEngine!.RegisterShortcut(arrangeSplit);
     }
 
+    private static void PromoteWindowsKeyboardShortcuts()
+    {
+        // Promote/demote window toggle (CTRL + Alt + Return) - promotes window to CenterWide or demotes back to original position
+        var promoteToggle = new ShortcutDefinition(
+            id: "promote-toggle",
+            keyCombination: new KeyCombination(Keys.VK_RETURN, ModifierKeys.Control | ModifierKeys.Alt),
+            actionId: "promote-toggle",
+            scope: ShortcutScope.Global,
+            blockKey: true
+        );
+
+        _keyboardEngine!.RegisterShortcut(promoteToggle);
+    }
+
     private static async void OnShortcutTriggered(object? sender, KeyboardTriggeredEventArgs e)
     {
         Logger.Info($"Shortcut triggered: {e.Shortcut.Id} (Action: {e.Shortcut.ActionId})");
@@ -410,6 +425,10 @@ public static class StartCommand
 
                 case "arrange-split":
                     await SendArrangeSplitRequestAsync();
+                    break;
+
+                case "promote-toggle":
+                    await SendPromoteRequestAsync();
                     break;
             }
         }
@@ -545,6 +564,34 @@ public static class StartCommand
         catch (Exception ex)
         {
             Logger.Error($"[Keyboard Action] Error sending arrange request: {ex.Message}", ex);
+        }
+    }
+
+    private static async Task SendPromoteRequestAsync()
+    {
+        if (_ipcClient == null)
+        {
+            Logger.Error("[Keyboard Action] IPC client not initialized");
+            return;
+        }
+
+        try
+        {
+            var request = new Request
+            {
+                Command = "promote",
+            };
+
+            var response = await _ipcClient.SendRequestAsync(request);
+
+            if (!response.Success)
+            {
+                Logger.Error($"[Keyboard Action] Promote toggle failed: {response.Message}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"[Keyboard Action] Error sending promote request: {ex.Message}", ex);
         }
     }
 }

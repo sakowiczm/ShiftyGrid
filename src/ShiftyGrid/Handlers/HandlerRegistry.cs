@@ -21,6 +21,7 @@ internal class HandlerRegistry : IRequestHandler
         _handlers[SwapCommand.Name] = new SwapCommandHandler();
         _handlers[ResizeCommand.Name] = new ResizeCommandHandler();
         _handlers[ArrangeSplitCommand.Name] = new ArrangeCommandHandler();
+        _handlers[PromoteCommand.Name] = new PromoteCommandHandler();
     }
 
     public Response Handle(Request request)
