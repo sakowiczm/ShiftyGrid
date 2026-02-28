@@ -20,6 +20,7 @@ internal class HandlerRegistry : IRequestHandler
         _handlers[MoveCommand.Name] = new MoveCommandHandler();
         _handlers[SwapCommand.Name] = new SwapCommandHandler();
         _handlers[ResizeCommand.Name] = new ResizeCommandHandler();
+        _handlers[ArrangeSplitCommand.Name] = new ArrangeCommandHandler();
     }
 
     public Response Handle(Request request)

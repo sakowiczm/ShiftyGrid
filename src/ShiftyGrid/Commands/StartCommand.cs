@@ -94,6 +94,7 @@ public static class StartCommand
         GridPositioningKeyboardShortucts();
         SwapWindowsKeyboardShortcuts();
         ResizeWindowsKeyboardShortcuts();
+        ArrangeSplitWindowsKeyboardShortcuts();
 
         // Start keyboard engine (hook installed on main thread)
         _keyboardEngine.Start();
@@ -327,6 +328,20 @@ public static class StartCommand
         _keyboardEngine!.RegisterShortcut(shrinkDown);
     }
 
+    private static void ArrangeSplitWindowsKeyboardShortcuts()
+    {
+        // Split-screen arrange (Ctrl + Alt + =) - positions two adjacent windows side by side
+        var arrangeSplit = new ShortcutDefinition(
+            id: "arrange-split",
+            keyCombination: new KeyCombination(Keys.VK_OEM_PLUS, ModifierKeys.Control | ModifierKeys.Alt),
+            actionId: "arrange-split",
+            scope: ShortcutScope.Global,
+            blockKey: true
+        );
+
+        _keyboardEngine!.RegisterShortcut(arrangeSplit);
+    }
+
     private static async void OnShortcutTriggered(object? sender, KeyboardTriggeredEventArgs e)
     {
         Logger.Info($"Shortcut triggered: {e.Shortcut.Id} (Action: {e.Shortcut.ActionId})");
@@ -393,6 +408,9 @@ public static class StartCommand
                     await SendResizeRequestAsync(WindowResize.ShrinkUp); // Shrink from top (window gets smaller toward bottom)
                     break;
 
+                case "arrange-split":
+                    await SendArrangeSplitRequestAsync();
+                    break;
             }
         }
         catch (Exception ex)
@@ -499,6 +517,34 @@ public static class StartCommand
         catch (Exception ex)
         {
             Logger.Error($"[Keyboard Action] Error sending resize request: {ex.Message}", ex);
+        }
+    }
+
+    private static async Task SendArrangeSplitRequestAsync()
+    {
+        if (_ipcClient == null)
+        {
+            Logger.Error("[Keyboard Action] IPC client not initialized");
+            return;
+        }
+
+        try
+        {
+            var request = new Request
+            {
+                Command = "arrange-split"
+            };
+
+            var response = await _ipcClient.SendRequestAsync(request);
+
+            if (!response.Success)
+            {
+                Logger.Error($"[Keyboard Action] Arrange failed: {response.Message}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"[Keyboard Action] Error sending arrange request: {ex.Message}", ex);
         }
     }
 }
