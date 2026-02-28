@@ -38,4 +38,8 @@ public record struct Position(
     public static readonly Position CenterWide = new Position(new Grid(10, 10), 1, 0, 9, 10);
     public static readonly Position Full = new Position(new Grid(10, 10), 0, 0, 10, 10);
 
+    //public static readonly Position ThreeColumnsCol1 = new Position(new Grid(9, 9), 0, 0, 3, 9);
+    //public static readonly Position ThreeColumnsCol2 = new Position(new Grid(9, 9), 3, 0, 6, 9);
+    //public static readonly Position ThreeColumnsCol3 = new Position(new Grid(9, 9), 6, 0, 9, 9);
+
 }
