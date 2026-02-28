@@ -102,7 +102,7 @@ Write-Host "`nBuilding project..." -ForegroundColor Yellow
 Push-Location $SourceDir
 try
 {
-    dotnet build --configuration $Configuration --no-restore
+    dotnet build --configuration $Configuration #--no-restore
     if ($LASTEXITCODE -ne 0)
     {
         Write-Error "Build failed"
