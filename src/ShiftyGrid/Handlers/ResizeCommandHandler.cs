@@ -115,13 +115,13 @@ internal class ResizeCommandHandler : RequestHandler<WindowResize>
         }
         else
         {
-            // No left neighbor: Check screen edge
-            if (!IsAtScreenEdge(focusedWindow, Direction.Left))
-            {
-                // Not at edge yet: EXPAND to edge
-                return ExpandToScreenEdge(focusedWindow, Direction.Left);
-            }
-            else
+            //// No left neighbor: Check screen edge
+            //if (!IsAtScreenEdge(focusedWindow, Direction.Left))
+            //{
+            //    // Not at edge yet: EXPAND to edge
+            //    return ExpandToScreenEdge(focusedWindow, Direction.Left);
+            //}
+            //else
             {
                 // At edge: SHRINK opposite (right) edge instead
                 return ShrinkRight(focusedWindow);
@@ -142,13 +142,13 @@ internal class ResizeCommandHandler : RequestHandler<WindowResize>
         }
         else
         {
-            // No right neighbor: Check screen edge
-            if (!IsAtScreenEdge(focusedWindow, Direction.Right))
-            {
-                // Not at edge yet: EXPAND to edge
-                return ExpandToScreenEdge(focusedWindow, Direction.Right);
-            }
-            else
+            //// No right neighbor: Check screen edge
+            //if (!IsAtScreenEdge(focusedWindow, Direction.Right))
+            //{
+            //    // Not at edge yet: EXPAND to edge
+            //    return ExpandToScreenEdge(focusedWindow, Direction.Right);
+            //}
+            //else
             {
                 // At edge: SHRINK opposite (left) edge instead
                 return ShrinkLeft(focusedWindow);
@@ -168,13 +168,13 @@ internal class ResizeCommandHandler : RequestHandler<WindowResize>
         }
         else
         {
-            // No top neighbor: Check screen edge
-            if (!IsAtScreenEdge(focusedWindow, Direction.Up))
-            {
-                // Not at edge yet: EXPAND to edge
-                return ExpandToScreenEdge(focusedWindow, Direction.Up);
-            }
-            else
+            //// No top neighbor: Check screen edge
+            //if (!IsAtScreenEdge(focusedWindow, Direction.Up))
+            //{
+            //    // Not at edge yet: EXPAND to edge
+            //    return ExpandToScreenEdge(focusedWindow, Direction.Up);
+            //}
+            //else
             {
                 // At edge: SHRINK opposite (bottom) edge instead
                 return ShrinkDown(focusedWindow);
@@ -194,13 +194,13 @@ internal class ResizeCommandHandler : RequestHandler<WindowResize>
         }
         else
         {
-            // No bottom neighbor: Check screen edge
-            if (!IsAtScreenEdge(focusedWindow, Direction.Down))
-            {
-                // Not at edge yet: EXPAND to edge
-                return ExpandToScreenEdge(focusedWindow, Direction.Down);
-            }
-            else
+            //// No bottom neighbor: Check screen edge
+            //if (!IsAtScreenEdge(focusedWindow, Direction.Down))
+            //{
+            //    // Not at edge yet: EXPAND to edge
+            //    return ExpandToScreenEdge(focusedWindow, Direction.Down);
+            //}
+            //else
             {
                 // At edge: SHRINK opposite (top) edge instead
                 return ShrinkUp(focusedWindow);

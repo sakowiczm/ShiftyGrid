@@ -4,6 +4,10 @@
 //  how to pick windows? active one + any adjecent + next windows in the z-order
 
 
+// todo: if we do the split of two windows - do the windows need to be adjecent? e.g if there is no adjecent windows take focused window and 
+//  other window not focused but but fully visible window to the user (not obscured) and expand it?
+
+
 /// <summary>
 /// Idea windows were resized and now I want equal split again.
 /// </summary>
