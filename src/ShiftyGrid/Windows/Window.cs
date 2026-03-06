@@ -104,6 +104,42 @@ internal record Window
 
     public bool IsValidForBorder() => IsForeground() && IsWindowReady();
 
+    /// <summary>
+    /// Restores a maximized or minimized window to Normal state.
+    /// Returns true if window was restored or was already in Normal state.
+    /// Returns false if restoration failed.
+    /// </summary>
+    public bool RestoreToNormal()
+    {
+        if (State == WindowState.Normal)
+        {
+            Logger.Debug($"Window '{Text}' already in Normal state");
+            return true;
+        }
+
+        if (State == WindowState.Minimized || State == WindowState.Maximized)
+        {
+            Logger.Debug($"Restoring window '{Text}' from {State} to Normal state");
+
+            var result = PInvoke.ShowWindow(Handle, SHOW_WINDOW_CMD.SW_RESTORE);
+
+            if (result)
+            {
+                Logger.Info($"Window '{Text}' restored to Normal state");
+                return true;
+            }
+            else
+            {
+                Logger.Error($"Failed to restore window '{Text}' to Normal state. Error code: {Marshal.GetLastWin32Error()}");
+                return false;
+            }
+        }
+
+        Logger.Warning($"Window '{Text}' in unexpected state: {State}");
+        return false;
+    }
+
+
     // todo: ZOrder as nullable?
 
     public static Window? FromHandle(HWND hwnd, int zOrder = 0)
