@@ -93,7 +93,7 @@ public static class StartCommand
         // Register shortcuts
         GridPositioningKeyboardShortucts();
         SwapWindowsKeyboardShortcuts();
-        ResizeWindowsKeyboardShortcuts();
+        ResizeWindowsModalKeyboardShortcuts();
         ArrangeSplitWindowsKeyboardShortcuts();
         PromoteWindowsKeyboardShortcuts();
 
@@ -237,96 +237,106 @@ public static class StartCommand
         Console.WriteLine($"Registered mode: {moveMode.Name} ({moveMode.Shortcuts.Count} shortcuts)");
     }
 
-    private static void ResizeWindowsKeyboardShortcuts()
+    private static void ResizeWindowsModalKeyboardShortcuts()
     {
-        // Context-aware resize (Alt + Arrow) - expands toward neighbor or shrinks when at edge
+        // Create resize mode with modal shortcuts
+        // Ctrl+Shift+R enters the mode, then use arrow keys to resize
+        var resizeMode = new ModeDefinition(
+            id: "resize_mode",
+            name: "Resize Mode",
+            timeoutMs: 3000,  // 3 second timeout for quick adjustments
+            allowEscape: true
+        );
 
-        // Resize Left      Alt + Left Arrow
-        // Resize Right     Alt + Right Arrow
-        // Resize Up        Alt + Up Arrow
-        // Resize Down      Alt + Down Arrow
+        // Arrow keys (no modifiers) = Expand/Resize
+        // Context-aware: expands toward neighbor or shrinks when at edge
 
-        var expandLeft = new ShortcutDefinition(
-            id: "resize-expand-left",
-            keyCombination: new KeyCombination(Keys.VK_LEFT, ModifierKeys.Alt),
+        resizeMode.Shortcuts.Add(new ShortcutDefinition(
+            id: "resize-mode-expand-left",
+            keyCombination: new KeyCombination(Keys.VK_LEFT, ModifierKeys.None),
             actionId: "resize-expand-left",
             scope: ShortcutScope.Global,
-            blockKey: true
-        );
+            blockKey: true,
+            exitMode: false  // Stay in mode for multiple adjustments
+        ));
 
-        var expandRight = new ShortcutDefinition(
-            id: "resize-expand-right",
-            keyCombination: new KeyCombination(Keys.VK_RIGHT, ModifierKeys.Alt),
+        resizeMode.Shortcuts.Add(new ShortcutDefinition(
+            id: "resize-mode-expand-right",
+            keyCombination: new KeyCombination(Keys.VK_RIGHT, ModifierKeys.None),
             actionId: "resize-expand-right",
             scope: ShortcutScope.Global,
-            blockKey: true
-        );
+            blockKey: true,
+            exitMode: false
+        ));
 
-        var expandUp = new ShortcutDefinition(
-            id: "resize-expand-up",
-            keyCombination: new KeyCombination(Keys.VK_UP, ModifierKeys.Alt),
+        resizeMode.Shortcuts.Add(new ShortcutDefinition(
+            id: "resize-mode-expand-up",
+            keyCombination: new KeyCombination(Keys.VK_UP, ModifierKeys.None),
             actionId: "resize-expand-up",
             scope: ShortcutScope.Global,
-            blockKey: true
-        );
+            blockKey: true,
+            exitMode: false
+        ));
 
-        var expandDown = new ShortcutDefinition(
-            id: "resize-expand-down",
-            keyCombination: new KeyCombination(Keys.VK_DOWN, ModifierKeys.Alt),
+        resizeMode.Shortcuts.Add(new ShortcutDefinition(
+            id: "resize-mode-expand-down",
+            keyCombination: new KeyCombination(Keys.VK_DOWN, ModifierKeys.None),
             actionId: "resize-expand-down",
             scope: ShortcutScope.Global,
-            blockKey: true
-        );
+            blockKey: true,
+            exitMode: false
+        ));
 
-        // todo: rename resize == expand?
+        // Shift+Arrow keys = Shrink
+        // Context-aware: shrinks away from neighbor, giving space to neighbor
 
-        _keyboardEngine!.RegisterShortcut(expandLeft);
-        _keyboardEngine!.RegisterShortcut(expandRight);
-        _keyboardEngine!.RegisterShortcut(expandUp);
-        _keyboardEngine!.RegisterShortcut(expandDown);
-
-        // Explicit shrink (Shift + Alt + Arrow) - shrinks window in arrow direction
-        // Shrink Left      Shift + Alt + Left Arrow   (shrinks from right, window moves/shrinks left)
-        // Shrink Right     Shift + Alt + Right Arrow  (shrinks from left, window moves/shrinks right)
-        // Shrink Up        Shift + Alt + Up Arrow     (shrinks from bottom, window moves/shrinks up)
-        // Shrink Down      Shift + Alt + Down Arrow   (shrinks from top, window moves/shrinks down)
-
-        var shrinkLeft = new ShortcutDefinition(
-            id: "resize-shrink-left",
-            keyCombination: new KeyCombination(Keys.VK_LEFT, ModifierKeys.Shift | ModifierKeys.Alt),
+        resizeMode.Shortcuts.Add(new ShortcutDefinition(
+            id: "resize-mode-shrink-left",
+            keyCombination: new KeyCombination(Keys.VK_LEFT, ModifierKeys.Shift),
             actionId: "resize-shrink-left",
             scope: ShortcutScope.Global,
-            blockKey: true
-        );
+            blockKey: true,
+            exitMode: false
+        ));
 
-        var shrinkRight = new ShortcutDefinition(
-            id: "resize-shrink-right",
-            keyCombination: new KeyCombination(Keys.VK_RIGHT, ModifierKeys.Shift | ModifierKeys.Alt),
+        resizeMode.Shortcuts.Add(new ShortcutDefinition(
+            id: "resize-mode-shrink-right",
+            keyCombination: new KeyCombination(Keys.VK_RIGHT, ModifierKeys.Shift),
             actionId: "resize-shrink-right",
             scope: ShortcutScope.Global,
-            blockKey: true
-        );
+            blockKey: true,
+            exitMode: false
+        ));
 
-        var shrinkUp = new ShortcutDefinition(
-            id: "resize-shrink-up",
-            keyCombination: new KeyCombination(Keys.VK_UP, ModifierKeys.Shift | ModifierKeys.Alt),
+        resizeMode.Shortcuts.Add(new ShortcutDefinition(
+            id: "resize-mode-shrink-up",
+            keyCombination: new KeyCombination(Keys.VK_UP, ModifierKeys.Shift),
             actionId: "resize-shrink-up",
             scope: ShortcutScope.Global,
-            blockKey: true
-        );
+            blockKey: true,
+            exitMode: false
+        ));
 
-        var shrinkDown = new ShortcutDefinition(
-            id: "resize-shrink-down",
-            keyCombination: new KeyCombination(Keys.VK_DOWN, ModifierKeys.Shift | ModifierKeys.Alt),
+        resizeMode.Shortcuts.Add(new ShortcutDefinition(
+            id: "resize-mode-shrink-down",
+            keyCombination: new KeyCombination(Keys.VK_DOWN, ModifierKeys.Shift),
             actionId: "resize-shrink-down",
             scope: ShortcutScope.Global,
-            blockKey: true
+            blockKey: true,
+            exitMode: false
+        ));
+
+        // Create and register activation shortcut (Ctrl+Shift+R)
+        var activationShortcut = resizeMode.CreateActivationShortcut(
+            new KeyCombination(Keys.VK_R, ModifierKeys.Control | ModifierKeys.Shift)
         );
 
-        _keyboardEngine!.RegisterShortcut(shrinkLeft);
-        _keyboardEngine!.RegisterShortcut(shrinkRight);
-        _keyboardEngine!.RegisterShortcut(shrinkUp);
-        _keyboardEngine!.RegisterShortcut(shrinkDown);
+        _keyboardEngine!.RegisterShortcut(activationShortcut);
+
+        // Register the mode with the engine
+        _keyboardEngine.RegisterMode(resizeMode);
+
+        Console.WriteLine($"Registered mode: {resizeMode.Name} ({resizeMode.Shortcuts.Count} shortcuts)");
     }
 
     private static void ArrangeSplitWindowsKeyboardShortcuts()
@@ -409,18 +419,17 @@ public static class StartCommand
                 case "resize-expand-down":
                     await SendResizeRequestAsync(WindowResize.ExpandDown);
                     break;
-
                 case "resize-shrink-left":
-                    await SendResizeRequestAsync(WindowResize.ShrinkRight); // Shrink from right (window gets smaller toward left)
+                    await SendResizeRequestAsync(WindowResize.ShrinkLeft);
                     break;
                 case "resize-shrink-right":
-                    await SendResizeRequestAsync(WindowResize.ShrinkLeft); // Shrink from left (window gets smaller toward right)
+                    await SendResizeRequestAsync(WindowResize.ShrinkRight);
                     break;
                 case "resize-shrink-up":
-                    await SendResizeRequestAsync(WindowResize.ShrinkDown); // Shrink from bottom (window gets smaller toward top)
+                    await SendResizeRequestAsync(WindowResize.ShrinkUp);
                     break;
                 case "resize-shrink-down":
-                    await SendResizeRequestAsync(WindowResize.ShrinkUp); // Shrink from top (window gets smaller toward bottom)
+                    await SendResizeRequestAsync(WindowResize.ShrinkDown);
                     break;
 
                 case "arrange-split":
