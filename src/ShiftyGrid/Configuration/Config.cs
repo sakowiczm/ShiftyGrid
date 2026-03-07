@@ -24,22 +24,21 @@ public record struct Position(
         endX = EndX;
         endY = EndY;
     }
-    
+
     // temp for testing
-    public static readonly Position LeftTop = new Position(new Grid(10, 10), 0, 0, 5, 5);
-    public static readonly Position RightTop = new Position(new Grid(10, 10), 5, 0, 10, 5);
-    public static readonly Position LeftBottom = new Position(new Grid(10, 10), 0, 5, 5, 10);
-    public static readonly Position RightBottom = new Position(new Grid(10, 10), 5, 5, 10, 10);
-    public static readonly Position LeftHalf = new Position(new Grid(10, 10), 0, 0, 5, 10);
-    public static readonly Position RightHalf = new Position(new Grid(10, 10), 5, 0, 10, 10);
+    public static readonly Position LeftTop = new Position(new Grid(12, 12), 0, 0, 6, 6);
+    public static readonly Position RightTop = new Position(new Grid(12, 12), 6, 0, 12, 6);
+    public static readonly Position LeftBottom = new Position(new Grid(12, 12), 0, 6, 6, 12);
+    public static readonly Position RightBottom = new Position(new Grid(12, 12), 6, 6, 12, 12);
 
+    public static readonly Position LeftHalf = new Position(new Grid(12, 12), 0, 0, 6, 12);
+    public static readonly Position RightHalf = new Position(new Grid(12, 12), 6, 0, 12, 12);
 
-    public static readonly Position Center = new Position(new Grid(10, 10), 2, 0, 8, 10);
-    public static readonly Position CenterWide = new Position(new Grid(10, 10), 1, 0, 9, 10);
-    public static readonly Position Full = new Position(new Grid(10, 10), 0, 0, 10, 10);
+    public static readonly Position Center = new Position(new Grid(12, 12), 2, 0, 10, 12);
+    public static readonly Position CenterWide = new Position(new Grid(12, 12), 1, 0, 11, 12);
+    public static readonly Position Full = new Position(new Grid(12, 12), 0, 0, 12, 12);
 
-    //public static readonly Position ThreeColumnsCol1 = new Position(new Grid(9, 9), 0, 0, 3, 9);
-    //public static readonly Position ThreeColumnsCol2 = new Position(new Grid(9, 9), 3, 0, 6, 9);
-    //public static readonly Position ThreeColumnsCol3 = new Position(new Grid(9, 9), 6, 0, 9, 9);
-
+    public static readonly Position ThreeColumnsCol1 = new Position(new Grid(12, 12), 0, 0, 4, 12);
+    public static readonly Position ThreeColumnsCol2 = new Position(new Grid(12, 12), 4, 0, 8, 12);
+    public static readonly Position ThreeColumnsCol3 = new Position(new Grid(12, 12), 8, 0, 12, 12);
 }

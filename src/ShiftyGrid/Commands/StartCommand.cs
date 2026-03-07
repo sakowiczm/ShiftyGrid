@@ -224,6 +224,71 @@ public static class StartCommand
             exitMode: true
         ));
 
+        // Three column layout (, . /)
+        moveMode.Shortcuts.Add(new ShortcutDefinition(
+            id: "move-mode-column1",
+            keyCombination: new KeyCombination(Keys.VK_OEM_COMMA, ModifierKeys.None),
+            actionId: "move-mode-column1",
+            scope: ShortcutScope.Global,
+            blockKey: true,
+            exitMode: true
+        ));
+
+        moveMode.Shortcuts.Add(new ShortcutDefinition(
+            id: "move-mode-column2",
+            keyCombination: new KeyCombination(Keys.VK_OEM_PERIOD, ModifierKeys.None),
+            actionId: "move-mode-column2",
+            scope: ShortcutScope.Global,
+            blockKey: true,
+            exitMode: true
+        ));
+
+        moveMode.Shortcuts.Add(new ShortcutDefinition(
+            id: "move-mode-column3",
+            keyCombination: new KeyCombination(Keys.VK_OEM_2, ModifierKeys.None),
+            actionId: "move-mode-column3",
+            scope: ShortcutScope.Global,
+            blockKey: true,
+            exitMode: true
+        ));
+
+        // Quadrants (o p k l)
+        moveMode.Shortcuts.Add(new ShortcutDefinition(
+            id: "move-mode-left-top",
+            keyCombination: new KeyCombination(Keys.VK_O, ModifierKeys.None),
+            actionId: "move-mode-left-top",
+            scope: ShortcutScope.Global,
+            blockKey: true,
+            exitMode: true
+        ));
+
+        moveMode.Shortcuts.Add(new ShortcutDefinition(
+            id: "move-mode-right-top",
+            keyCombination: new KeyCombination(Keys.VK_P, ModifierKeys.None),
+            actionId: "move-mode-right-top",
+            scope: ShortcutScope.Global,
+            blockKey: true,
+            exitMode: true
+        ));
+
+        moveMode.Shortcuts.Add(new ShortcutDefinition(
+            id: "move-mode-left-bottom",
+            keyCombination: new KeyCombination(Keys.VK_K, ModifierKeys.None),
+            actionId: "move-mode-left-bottom",
+            scope: ShortcutScope.Global,
+            blockKey: true,
+            exitMode: true
+        ));
+
+        moveMode.Shortcuts.Add(new ShortcutDefinition(
+            id: "move-mode-right-bottom",
+            keyCombination: new KeyCombination(Keys.VK_L, ModifierKeys.None),
+            actionId: "move-mode-right-bottom",
+            scope: ShortcutScope.Global,
+            blockKey: true,
+            exitMode: true
+        ));
+
         // Create and register activation shortcut using factory method
         var activationShortcut = moveMode.CreateActivationShortcut(
                 new KeyCombination(Keys.VK_D, ModifierKeys.Control | ModifierKeys.Shift)
@@ -393,6 +458,29 @@ public static class StartCommand
                 case "move-mode-full":
                     await SendMoveRequestAsync(Position.Full);
                     break;
+                case "move-mode-column1":
+                    await SendMoveRequestAsync(Position.ThreeColumnsCol1);
+                    break;
+                case "move-mode-column2":
+                    await SendMoveRequestAsync(Position.ThreeColumnsCol2);
+                    break;
+                case "move-mode-column3":
+                    await SendMoveRequestAsync(Position.ThreeColumnsCol3);
+                    break;
+
+                case "move-mode-left-top":
+                    await SendMoveRequestAsync(Position.LeftTop);
+                    break;
+                case "move-mode-right-top":
+                    await SendMoveRequestAsync(Position.RightTop);
+                    break;
+                case "move-mode-left-bottom":
+                    await SendMoveRequestAsync(Position.LeftBottom);
+                    break;
+                case "move-mode-right-bottom":
+                    await SendMoveRequestAsync(Position.RightBottom);
+                    break;
+
 
                 case "swap-left":
                     await SendSwapRequestAsync(Direction.Left);
