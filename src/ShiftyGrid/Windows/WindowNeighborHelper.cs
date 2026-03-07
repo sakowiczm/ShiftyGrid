@@ -94,6 +94,20 @@ internal static class WindowNeighborHelper
     // todo: move to Window?
 
     /// <summary>
+    /// Checks if a window has a reasonable size (used for elevated windows without readable text)
+    /// </summary>
+    private static bool HasValidSize(Window window)
+    {
+        var width = window.Rect.right - window.Rect.left;
+        var height = window.Rect.bottom - window.Rect.top;
+
+        // Filter out system windows (0x0, 1x1, negative coords)
+        // Accept windows with reasonable application size (>100px)
+        return width > 100 && height > 100 &&
+               window.Rect.left >= -10 && window.Rect.top >= -10;  // Allow slight negative for borders
+    }
+
+    /// <summary>
     /// Gets all windows on the specified monitor in Z-order
     /// </summary>
     public static List<Window> GetWindowsOnMonitor(HMONITOR targetMonitor)
@@ -112,7 +126,9 @@ internal static class WindowNeighborHelper
                 if (windowMonitor == targetMonitor)
                 {
                     var windowInfo = Window.FromHandle(hWnd, zOrder);
-                    if (windowInfo != null && !string.IsNullOrWhiteSpace(windowInfo.Text))
+                    // Include windows with text OR valid size (for elevated windows)
+                    if (windowInfo != null &&
+                        (!string.IsNullOrWhiteSpace(windowInfo.Text) || HasValidSize(windowInfo)))
                     {
                         windows.Add(windowInfo);
 

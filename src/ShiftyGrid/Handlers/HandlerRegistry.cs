@@ -22,6 +22,8 @@ internal class HandlerRegistry : IRequestHandler
         _handlers[ResizeCommand.Name] = new ResizeCommandHandler();
         _handlers[ArrangeSplitCommand.Name] = new ArrangeCommandHandler();
         _handlers[PromoteCommand.Name] = new PromoteCommandHandler();
+        _handlers[ArrangeColumnsCommand.Name] = new ArrangeColumnsHandler();
+        _handlers[ArrangeCornersCommand.Name] = new ArrangeCornersHandler();
     }
 
     public Response Handle(Request request)

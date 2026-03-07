@@ -96,6 +96,7 @@ public static class StartCommand
         ResizeWindowsModalKeyboardShortcuts();
         ArrangeSplitWindowsKeyboardShortcuts();
         PromoteWindowsKeyboardShortcuts();
+        ArrangeColumnsAndCornersKeyboardShortcuts();
 
         // Start keyboard engine (hook installed on main thread)
         _keyboardEngine.Start();
@@ -432,6 +433,30 @@ public static class StartCommand
         _keyboardEngine!.RegisterShortcut(promoteToggle);
     }
 
+    private static void ArrangeColumnsAndCornersKeyboardShortcuts()
+    {
+        // Arrange columns: Ctrl + Alt + 3
+        var arrangeColumns = new ShortcutDefinition(
+            id: "arrange-columns",
+            keyCombination: new KeyCombination(Keys.VK_3, ModifierKeys.Control | ModifierKeys.Alt),
+            actionId: "arrange-columns",
+            scope: ShortcutScope.Global,
+            blockKey: true
+        );
+
+        // Arrange corners: Ctrl + Alt + 4
+        var arrangeCorners = new ShortcutDefinition(
+            id: "arrange-corners",
+            keyCombination: new KeyCombination(Keys.VK_4, ModifierKeys.Control | ModifierKeys.Alt),
+            actionId: "arrange-corners",
+            scope: ShortcutScope.Global,
+            blockKey: true
+        );
+
+        _keyboardEngine!.RegisterShortcut(arrangeColumns);
+        _keyboardEngine!.RegisterShortcut(arrangeCorners);
+    }
+
     private static async void OnShortcutTriggered(object? sender, KeyboardTriggeredEventArgs e)
     {
         Logger.Info($"Shortcut triggered: {e.Shortcut.Id} (Action: {e.Shortcut.ActionId})");
@@ -527,6 +552,16 @@ public static class StartCommand
                 case "promote-toggle":
                     await SendPromoteRequestAsync();
                     break;
+
+
+                case "arrange-columns":
+                    await SendArrangeColumnsRequestAsync();
+                    break;
+
+                case "arrange-corners":
+                    await SendArrangeCornersRequestAsync();
+                    break;
+
             }
         }
         catch (Exception ex)
@@ -689,6 +724,62 @@ public static class StartCommand
         catch (Exception ex)
         {
             Logger.Error($"[Keyboard Action] Error sending promote request: {ex.Message}", ex);
+        }
+    }
+
+    private static async Task SendArrangeColumnsRequestAsync()
+    {
+        if (_ipcClient == null)
+        {
+            Logger.Error("[Keyboard Action] IPC client not initialized");
+            return;
+        }
+
+        try
+        {
+            var request = new Request
+            {
+                Command = "arrange-columns"
+            };
+
+            var response = await _ipcClient.SendRequestAsync(request);
+
+            if (!response.Success)
+            {
+                Logger.Error($"[Keyboard Action] Arrange columns failed: {response.Message}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"[Keyboard Action] Error sending arrange columns request: {ex.Message}", ex);
+        }
+    }
+
+    private static async Task SendArrangeCornersRequestAsync()
+    {
+        if (_ipcClient == null)
+        {
+            Logger.Error("[Keyboard Action] IPC client not initialized");
+            return;
+        }
+
+        try
+        {
+            var request = new Request
+            {
+                Command = "arrange-corners"
+            };
+
+            var response = await _ipcClient.SendRequestAsync(request);
+
+            if (!response.Success)
+            {
+                Logger.Error($"[Keyboard Action] Arrange corners failed: {response.Message}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"[Keyboard Action] Error sending arrange corners request: {ex.Message}", ex);
         }
     }
 }
