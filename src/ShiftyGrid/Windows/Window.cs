@@ -104,6 +104,27 @@ internal record Window
 
     public bool IsValidForBorder() => IsForeground() && IsWindowReady();
 
+    public unsafe string? GetProcessName()
+    {
+        try
+        {
+            uint processId = 0;
+            PInvoke.GetWindowThreadProcessId(Handle, &processId);
+
+            if (processId == 0)
+                return null;
+
+            using var process = System.Diagnostics.Process.GetProcessById((int)processId);
+            return process.ProcessName;
+        }
+        catch (Exception ex)
+        {
+            // Handle elevated processes or missing processes gracefully
+            Logger.Debug($"Window. Cannot get process name for {Handle}: {ex.Message}");
+            return null;
+        }
+    }
+
     /// <summary>
     /// Restores a maximized or minimized window to Normal state.
     /// Returns true if window was restored or was already in Normal state.

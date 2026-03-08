@@ -1,7 +1,6 @@
 ﻿using ShiftyGrid.Configuration;
-using ShiftyGrid.Windows;
 
-namespace ShiftyGrid.Helpers;
+namespace ShiftyGrid.Windows;
 
 /// <summary>
 /// Converts between pixel coordinates and grid positions

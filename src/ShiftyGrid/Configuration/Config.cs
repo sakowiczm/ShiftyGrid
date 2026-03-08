@@ -42,3 +42,42 @@ public record struct Position(
     public static readonly Position ThreeColumnsCol2 = new Position(new Grid(12, 12), 4, 0, 8, 12);
     public static readonly Position ThreeColumnsCol3 = new Position(new Grid(12, 12), 8, 0, 12, 12);
 }
+
+
+// Each window should have at most ONE matching rule. Having multiple matchers
+// for the same window with different positions would be incorrect configuration.
+public record WindowMatcher
+{
+    [JsonPropertyName("titlePattern")]
+    public string? TitlePattern { get; init; }
+
+    [JsonPropertyName("className")]
+    public string? ClassName { get; init; }
+
+    [JsonPropertyName("processName")]
+    public string? ProcessName { get; init; }
+
+    [JsonPropertyName("position")]
+    public required Position Position { get; init; }
+}
+
+public class OrganizeConfig
+{
+    [JsonPropertyName("matchers")]
+    public List<WindowMatcher> Matchers { get; init; } = new();
+
+    public static OrganizeConfig GetDefault()
+    {
+        return new OrganizeConfig
+        {
+            Matchers = new List<WindowMatcher>
+            {
+                new() { TitlePattern = "Slack", Position = Position.RightHalf },
+                new() { ProcessName = "WindowsTerminal", Position = Position.LeftHalf },
+                new() { TitlePattern = "Docker Desktop", Position = Position.RightHalf },
+                new() { ProcessName = "Fork", Position = Position.LeftHalf },
+                new() { ProcessName = "Code", Position = Position.LeftHalf }
+            }
+        };
+    }
+}

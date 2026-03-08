@@ -97,6 +97,7 @@ public static class StartCommand
         ArrangeSplitWindowsKeyboardShortcuts();
         PromoteWindowsKeyboardShortcuts();
         ArrangeColumnsAndCornersKeyboardShortcuts();
+        OrganizeWindowsKeyboardShortcut();
 
         // Start keyboard engine (hook installed on main thread)
         _keyboardEngine.Start();
@@ -457,6 +458,20 @@ public static class StartCommand
         _keyboardEngine!.RegisterShortcut(arrangeCorners);
     }
 
+    private static void OrganizeWindowsKeyboardShortcut()
+    {
+        // Organize windows according to predefined rules (Ctrl + Shift + O)
+        var organizeShortcut = new ShortcutDefinition(
+            id: "organize-windows",
+            keyCombination: new KeyCombination(Keys.VK_O, ModifierKeys.Control | ModifierKeys.Shift),
+            actionId: "organize-windows",
+            scope: ShortcutScope.Global,
+            blockKey: true
+        );
+
+        _keyboardEngine!.RegisterShortcut(organizeShortcut);
+    }
+
     private static async void OnShortcutTriggered(object? sender, KeyboardTriggeredEventArgs e)
     {
         Logger.Info($"Shortcut triggered: {e.Shortcut.Id} (Action: {e.Shortcut.ActionId})");
@@ -560,6 +575,10 @@ public static class StartCommand
 
                 case "arrange-corners":
                     await SendArrangeCornersRequestAsync();
+                    break;
+
+                case "organize-windows":
+                    await SendOrganizeRequestAsync();
                     break;
 
             }
@@ -780,6 +799,34 @@ public static class StartCommand
         catch (Exception ex)
         {
             Logger.Error($"[Keyboard Action] Error sending arrange corners request: {ex.Message}", ex);
+        }
+    }
+
+    private static async Task SendOrganizeRequestAsync()
+    {
+        if (_ipcClient == null)
+        {
+            Logger.Error("[Keyboard Action] IPC client not initialized");
+            return;
+        }
+
+        try
+        {
+            var request = new Request
+            {
+                Command = "organize"
+            };
+
+            var response = await _ipcClient.SendRequestAsync(request);
+
+            if (!response.Success)
+            {
+                Logger.Error($"[Keyboard Action] Organize failed: {response.Message}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"[Keyboard Action] Error sending organize request: {ex.Message}", ex);
         }
     }
 }

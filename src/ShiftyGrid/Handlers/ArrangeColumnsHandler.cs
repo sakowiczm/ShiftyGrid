@@ -6,6 +6,12 @@ using System.Text.Json.Serialization.Metadata;
 
 namespace ShiftyGrid.Handlers;
 
+
+// todo: idea - arrange --cols 2 --rows 2
+//  this could allow to unify 3 command - arrange, arrange columns and arrange corners
+//  windows order: focused window -> adjectent windows -> any non adjecent but fully visible to the user (not obscured)
+//    -> windows closest on z-order -> anything what is left
+
 internal class ArrangeColumnsHandler : RequestHandler<string>
 {
     protected override Response Handle(string data)
