@@ -78,3 +78,9 @@ SW_RESTORE
 
 SetForegroundWindow
 AttachThreadInput
+
+RedrawWindow
+REDRAW_WINDOW_FLAGS
+
+GetWindow
+GET_WINDOW_CMD

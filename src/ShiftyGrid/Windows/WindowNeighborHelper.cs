@@ -116,7 +116,7 @@ internal static class WindowNeighborHelper
         int zOrder = 0; // Track Z-order position (0 = topmost)
 
         // todo: add filtering - list of windows that we are not interested
-        //  WindowMatcher - responsible for matching windows - what for matched windows are used is a different thing - 
+        //  WindowMatch - responsible for matching windows - what for matched windows are used is a different thing - 
         //  either filtering out or applying actions on windows.
 
         PInvoke.EnumWindows((hWnd, lParam) =>

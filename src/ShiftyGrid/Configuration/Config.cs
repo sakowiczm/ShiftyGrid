@@ -46,7 +46,7 @@ public record struct Position(
 
 // Each window should have at most ONE matching rule. Having multiple matchers
 // for the same window with different positions would be incorrect configuration.
-public record WindowMatcher
+public record WindowMatch
 {
     [JsonPropertyName("titlePattern")]
     public string? TitlePattern { get; init; }
@@ -64,13 +64,13 @@ public record WindowMatcher
 public class OrganizeConfig
 {
     [JsonPropertyName("matchers")]
-    public List<WindowMatcher> Matchers { get; init; } = new();
+    public List<WindowMatch> Matchers { get; init; } = new();
 
     public static OrganizeConfig GetDefault()
     {
         return new OrganizeConfig
         {
-            Matchers = new List<WindowMatcher>
+            Matchers = new List<WindowMatch>
             {
                 new() { TitlePattern = "Slack", Position = Position.RightHalf },
                 new() { ProcessName = "WindowsTerminal", Position = Position.LeftHalf },

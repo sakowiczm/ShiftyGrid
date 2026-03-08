@@ -77,8 +77,22 @@ internal class OrganizeCommandHandler : RequestHandler<string>
             if (window.State == WindowState.Minimized)
                 continue;
 
+            // Check if window is ready for positioning
+            if (!window.IsWindowReadyForPositioning())
+            {
+                Logger.Debug($"OrganizeCommand: Window '{window.Text}' not ready for positioning, skipping");
+                continue;
+            }
+
+            // Skip child windows, dialogs, and popups - only organize root windows
+            if (!window.IsParent)
+            {
+                Logger.Debug($"OrganizeCommand: Skipping child window '{window.Text}'");
+                continue;
+            }
+
             // Find matching rule
-            var matcher = FindMatchingRule(window);
+            var matcher = WindowMatcher.FindMatchingRule(window, _config);
             if (matcher == null)
             {
                 Logger.Debug($"OrganizeCommand: No match for window '{window.Text}' (class: {window.ClassName})");
@@ -128,62 +142,6 @@ internal class OrganizeCommandHandler : RequestHandler<string>
         }
 
         return (true, $"Organized {successCount} window(s)");
-    }
-
-    // todo: extract to WindowMacher class?
-
-    /// <summary>
-    /// Finds the first matching rule for a window using strict AND logic.
-    /// All defined conditions (TitlePattern, ClassName, ProcessName) must be fulfilled for a match.
-    /// All comparisons are case-insensitive.
-    /// </summary>
-    public static WindowMatcher? FindMatchingRule(Window window)
-    {
-        // Get process name (may be null for elevated windows)
-        var processName = window.GetProcessName();
-
-        foreach (var matcher in _config.Matchers)
-        {
-            bool allConditionsMet = true;
-
-            // Check TitlePattern (if defined)
-            if (!string.IsNullOrEmpty(matcher.TitlePattern))
-            {
-                if (string.IsNullOrEmpty(window.Text) ||
-                    !window.Text.Contains(matcher.TitlePattern, StringComparison.OrdinalIgnoreCase))
-                {
-                    allConditionsMet = false;
-                }
-            }
-
-            // Check ClassName (if defined)
-            if (allConditionsMet && !string.IsNullOrEmpty(matcher.ClassName))
-            {
-                if (string.IsNullOrEmpty(window.ClassName) ||
-                    !window.ClassName.Equals(matcher.ClassName, StringComparison.OrdinalIgnoreCase))
-                {
-                    allConditionsMet = false;
-                }
-            }
-
-            // Check ProcessName (if defined)
-            if (allConditionsMet && !string.IsNullOrEmpty(matcher.ProcessName))
-            {
-                if (processName == null ||
-                    !processName.Equals(matcher.ProcessName, StringComparison.OrdinalIgnoreCase))
-                {
-                    allConditionsMet = false;
-                }
-            }
-
-            // Return first matcher where all conditions are met
-            if (allConditionsMet)
-            {
-                return matcher;
-            }
-        }
-
-        return null; // No matcher matched all conditions
     }
 
     /// <summary>

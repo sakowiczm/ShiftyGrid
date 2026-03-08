@@ -5,6 +5,7 @@ using ShiftyGrid.Keyboard;
 using ShiftyGrid.Keyboard.Helpers;
 using ShiftyGrid.Keyboard.Models;
 using ShiftyGrid.Server;
+using ShiftyGrid.Windows;
 using System.CommandLine;
 using Windows.Win32;
 using Windows.Win32.Foundation;
@@ -41,8 +42,11 @@ public static class StartCommand
     private static IpcServer? _ipcServer;
     private static IpcClient? _ipcClient;
     private static KeyboardEngine? _keyboardEngine;
+    private static WindowEventMonitor? _windowEventMonitor;
     private static bool _shouldExit;
     private static uint _mainThreadId;
+    private static bool _autoOrganizeEnabled = true;
+
 
     /// <summary>
     /// Starts IPC server instance with integrated keyboard engine
@@ -104,6 +108,37 @@ public static class StartCommand
         Logger.Info("Keyboard engine started");
         Logger.Info("IPC server started, entering message loop");
 
+        // Initialize window event monitor for auto-organization
+        if (_autoOrganizeEnabled)
+        {
+            _windowEventMonitor = new WindowEventMonitor();
+            _windowEventMonitor.Start();
+            Logger.Info("Window event monitor started (auto-organize enabled)");
+
+            // Organize existing windows at startup
+            Logger.Info("Running initial window organization...");
+            ThreadPool.QueueUserWorkItem(_ =>
+            {
+                try
+                {
+                    var request = new Request { Command = "organize" };
+                    var response = _ipcClient?.SendRequestAsync(request).GetAwaiter().GetResult();
+                    if (response != null && !response.Success)
+                    {
+                        Logger.Warning($"Initial window organization completed with warnings: {response.Message}");
+                    }
+                    else
+                    {
+                        Logger.Info("Initial window organization completed");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error("Failed to run initial window organization", ex);
+                }
+            });
+        }
+
         ConsoleManager.Detach();
 
         // Message loop - continues until _shouldExit is set
@@ -115,6 +150,8 @@ public static class StartCommand
         }
 
         Logger.Info("Shutting down...");
+        _windowEventMonitor?.Stop();
+        _windowEventMonitor?.Dispose();
         _keyboardEngine?.Stop();
         _keyboardEngine?.Dispose();
         _ipcServer?.Stop();

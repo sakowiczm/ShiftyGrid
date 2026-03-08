@@ -98,6 +98,59 @@ internal record Window
         return cloaked == 0;
     }
 
+    /// <summary>
+    /// Comprehensive readiness check for window positioning.
+    /// Validates visibility, cloaking state, window state, dimensions, and transition status.
+    /// </summary>
+    public unsafe bool IsWindowReadyForPositioning()
+    {
+        // Existing visibility and cloaking checks
+        if (!IsWindowReady())
+            return false;
+
+        // Ensure window is in Normal state (not minimized/maximized)
+        if (State != WindowState.Normal)
+        {
+            Logger.Debug($"Window '{Text}' not in Normal state (current: {State})");
+            return false;
+        }
+
+        // Verify window has valid dimensions
+        if (Rect.Width <= 0 || Rect.Height <= 0)
+        {
+            Logger.Debug($"Window '{Text}' has invalid dimensions: {Rect.Width}x{Rect.Height}");
+            return false;
+        }
+
+        // Check that window is not in a transition state
+        if (IsWindowTransitioning())
+        {
+            Logger.Debug($"Window '{Text}' is in transition state");
+            return false;
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Checks if window is currently in a transition/animation state.
+    /// Uses DWM attribute to detect if transitions are disabled (initialization in progress).
+    /// </summary>
+    private unsafe bool IsWindowTransitioning()
+    {
+        int transitionsDisabled = 0;
+        var result = PInvoke.DwmGetWindowAttribute(
+            Handle,
+            DWMWINDOWATTRIBUTE.DWMWA_TRANSITIONS_FORCEDISABLED,
+            &transitionsDisabled,
+            sizeof(int)
+        );
+
+        // If we can check and transitions are disabled, window is still initializing
+        return result.Succeeded && transitionsDisabled != 0;
+    }
+
+
     public bool IsForeground() => IsForeground(Handle);
 
     internal static bool IsForeground(HWND hwnd) => PInvoke.GetForegroundWindow() == hwnd;
@@ -323,6 +376,11 @@ internal record Window
                 return false;
 
             if (rootWindow != hwnd)
+                return false;
+
+            // Check if window has an owner - owned windows are dialogs/popups that should not be organized
+            var ownerWindow = PInvoke.GetWindow(hwnd, GET_WINDOW_CMD.GW_OWNER);
+            if (!ownerWindow.IsNull)
                 return false;
 
             var style = PInvoke.GetWindowLong(hwnd, WINDOW_LONG_PTR_INDEX.GWL_STYLE);

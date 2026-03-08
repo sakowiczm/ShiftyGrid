@@ -2,6 +2,7 @@ using ShiftyGrid.Common;
 using ShiftyGrid.Configuration;
 using Windows.Win32;
 using Windows.Win32.Foundation;
+using Windows.Win32.Graphics.Gdi;
 using Windows.Win32.UI.WindowsAndMessaging;
 
 namespace ShiftyGrid.Windows;
@@ -26,7 +27,7 @@ public class WindowPositioner
 
     // todo: have generic method to change window position - position calculation do elsewhere?
 
-    internal static bool ChangePosition(Window window, Position position, int gap)
+    internal static unsafe bool ChangePosition(Window window, Position position, int gap)
     {
         Logger.Debug($"Positioning window: {window.Text} (Handle: {window.Handle})");
         Logger.Debug($"Monitor work area: ({window.MonitorRect.left}, {window.MonitorRect.top}) - ({window.MonitorRect.right}, {window.MonitorRect.bottom})");
@@ -103,17 +104,29 @@ public class WindowPositioner
             window.Handle,
             HWND.Null,
             x, y, width, height,
-            SET_WINDOW_POS_FLAGS.SWP_NOZORDER | SET_WINDOW_POS_FLAGS.SWP_NOACTIVATE);
+            SET_WINDOW_POS_FLAGS.SWP_NOZORDER |
+            SET_WINDOW_POS_FLAGS.SWP_NOACTIVATE |
+            SET_WINDOW_POS_FLAGS.SWP_FRAMECHANGED);  // Forces frame recalculation
 
         if (result)
         {
+            // Force redraw of non-client area (title bar with close/minimize/maximize buttons)
+            PInvoke.RedrawWindow(
+                window.Handle,
+                null,
+                HRGN.Null,
+                REDRAW_WINDOW_FLAGS.RDW_FRAME |
+                REDRAW_WINDOW_FLAGS.RDW_INVALIDATE |
+                REDRAW_WINDOW_FLAGS.RDW_UPDATENOW
+            );
+
             Logger.Info($"Window positioned successfully to position {position}");
         }
         else
         {
             Logger.Error($"Failed to position window to position {position}");
         }
-        
+
         return result;
     }
 
