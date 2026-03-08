@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(./build.ps1:*)",
+      "Bash(dotnet build:*)",
+      "Bash(dotnet clean:*)",
+      "Bash(xargs grep:*)",
+      "Bash(grep:*)",
+      "Bash(git log:*)"
+    ],
+    "deny": [
+      "Bash(git commit:*)",
+      "Read(./.env)",
+      "Read(./.env.*)"
+    ]
+  }
+}
