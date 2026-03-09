@@ -2,19 +2,42 @@
 using ShiftyGrid.Configuration;
 using ShiftyGrid.Server;
 using ShiftyGrid.Windows;
+using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
 
 namespace ShiftyGrid.Handlers;
 
-internal class ArrangeCommandHandler : RequestHandler<string>
+public record ArrangeOptions(
+    [property: JsonPropertyName("rows")] int Rows,
+    [property: JsonPropertyName("cols")] int Cols
+);
+
+internal class ArrangeCommandHandler : RequestHandler<ArrangeOptions>
 {
-    protected override Response Handle(string data)
+    protected override Response Handle(ArrangeOptions options)
     {
         try
         {
-            var success = Execute();
+            // Validate parameters
+            if (options.Rows < 1 || options.Rows > 2)
+            {
+                return Response.CreateError($"Invalid rows: {options.Rows}. Must be between 1 and 2.");
+            }
+
+            if (options.Cols < 1 || options.Cols > 4)
+            {
+                return Response.CreateError($"Invalid cols: {options.Cols}. Must be between 1 and 4.");
+            }
+
+            int totalCells = options.Rows * options.Cols;
+            if (totalCells > 8)
+            {
+                return Response.CreateError($"Invalid grid: {options.Rows}x{options.Cols} = {totalCells} cells. Maximum is 8 cells.");
+            }
+
+            var success = Execute(options.Rows, options.Cols);
             return success
-                ? Response.CreateSuccess("Windows arranged")
+                ? Response.CreateSuccess($"Windows arranged in {options.Rows}x{options.Cols} grid")
                 : Response.CreateError("Error arranging windows");
         }
         catch (Exception ex)
@@ -24,13 +47,14 @@ internal class ArrangeCommandHandler : RequestHandler<string>
         }
     }
 
-    protected override JsonTypeInfo<string> GetJsonTypeInfo()
+    protected override JsonTypeInfo<ArrangeOptions> GetJsonTypeInfo()
     {
-        return IpcJsonContext.Default.String;
+        return IpcJsonContext.Default.ArrangeOptions;
     }
 
-    public bool Execute()
+    private bool Execute(int rows, int cols)
     {
+        // Get active window
         var activeWindow = Window.GetForeground();
         if (activeWindow == null)
         {
@@ -44,75 +68,69 @@ internal class ArrangeCommandHandler : RequestHandler<string>
             return false;
         }
 
-        // Try to find a horizontal neighbor (left or right)
-        var leftNeighbor = WindowNeighborHelper.GetAdjacentWindow(activeWindow, Direction.Left);
-        var rightNeighbor = leftNeighbor == null
-            ? WindowNeighborHelper.GetAdjacentWindow(activeWindow, Direction.Right)
-            : null;
+        // Calculate target window count
+        int targetCount = rows * cols;
 
-        var neighbor = leftNeighbor ?? rightNeighbor;
+        // Select windows using 5-priority selection
+        var windows = WindowSelector.SelectWindowsForArrange(activeWindow, targetCount);
 
-        if (neighbor != null)
-        {
-            // Two-window scenario: arrange both windows side by side
-            return ArrangeTwoWindows(activeWindow, neighbor);
-        }
-        else
-        {
-            // Single-window scenario: position active window to left or right half
-            return ArrangeSingleWindow(activeWindow);
-        }
-    }
+        Logger.Debug($"Selected {windows.Count} windows for {rows}x{cols} grid");
 
-    private bool ArrangeTwoWindows(Window window1, Window window2)
-    {
-        if (window2.IsFullscreen)
+        // Handle edge cases
+        if (windows.Count == 0)
         {
-            Logger.Debug("Cannot arrange with maximized/fullscreen neighbor window");
+            Logger.Debug("No windows to arrange");
             return false;
         }
 
-        // Calculate center X for both windows
-        var monitorRect = window1.MonitorRect;
-        var screenCenterX = monitorRect.left + (monitorRect.right - monitorRect.left) / 2;
+        // Generate grid positions
+        var positions = GenerateGridPositions(rows, cols);
 
-        var window1CenterX = window1.Rect.left + (window1.Rect.right - window1.Rect.left) / 2;
-        var window2CenterX = window2.Rect.left + (window2.Rect.right - window2.Rect.left) / 2;
+        // Assign windows to positions (up to available windows)
+        bool success = true;
+        for (int i = 0; i < Math.Min(windows.Count, positions.Count); i++)
+        {
+            var window = windows[i];
+            var position = positions[i];
 
-        // Determine which window is on the left side of the screen
-        Window leftWindow, rightWindow;
-        if (window1CenterX < window2CenterX)
-        {
-            leftWindow = window1;
-            rightWindow = window2;
-        }
-        else
-        {
-            leftWindow = window2;
-            rightWindow = window1;
+            Logger.Debug($"Arranging window '{window.Text}' to grid cell {i + 1} (row {i / cols + 1}, col {i % cols + 1})");
+
+            success &= WindowPositioner.ChangePosition(window, position, gap: 2);
         }
 
-        Logger.Debug($"Arranging two windows: '{leftWindow.Text}' (left) and '{rightWindow.Text}' (right)");
-
-        // Position windows with 2px gap
-        var leftResult = WindowPositioner.ChangePosition(leftWindow, Position.LeftHalf, gap: 2);
-        var rightResult = WindowPositioner.ChangePosition(rightWindow, Position.RightHalf, gap: 2);
-
-        return leftResult && rightResult;
+        return success;
     }
 
-    private bool ArrangeSingleWindow(Window window)
+    private List<Position> GenerateGridPositions(int rows, int cols)
     {
-        // Calculate center X of the window
-        var monitorRect = window.MonitorRect;
-        var screenCenterX = monitorRect.left + (monitorRect.right - monitorRect.left) / 2;
-        var windowCenterX = window.Rect.left + (window.Rect.right - window.Rect.left) / 2;
+        const int gridSize = 12;
+        var positions = new List<Position>();
 
-        // Position to left or right half based on which side of screen center the window is on
-        var position = windowCenterX < screenCenterX ? Position.LeftHalf : Position.RightHalf;
+        int cellWidth = gridSize / cols;
+        int cellHeight = gridSize / rows;
 
-        Logger.Debug($"Arranging single window '{window.Text}' to {(windowCenterX < screenCenterX ? "left" : "right")} half");
+        // Generate positions in reading order (left-to-right, top-to-bottom)
+        for (int row = 0; row < rows; row++)
+        {
+            for (int col = 0; col < cols; col++)
+            {
+                int startX = col * cellWidth;
+                int startY = row * cellHeight;
+                int endX = (col + 1) * cellWidth;
+                int endY = (row + 1) * cellHeight;
 
-        return WindowPositioner.ChangePosition(window, position, gap: 2);
+                var position = new Position(
+                    new Grid(gridSize, gridSize),
+                    startX,
+                    startY,
+                    endX,
+                    endY
+                );
+
+                positions.Add(position);
+            }
+        }
+
+        return positions;
     }
 }

@@ -74,6 +74,8 @@ public abstract class BaseCommand
             return (JsonTypeInfo<T>)(object)IpcJsonContext.Default.Position;
         if (typeof(T) == typeof(string))
             return (JsonTypeInfo<T>)(object)IpcJsonContext.Default.String;
+        if (typeof(T) == typeof(Handlers.ArrangeOptions))
+            return (JsonTypeInfo<T>)(object)IpcJsonContext.Default.ArrangeOptions;
 
         throw new NotSupportedException($"Type {typeof(T).Name} is not registered in IpcJsonContext");
     }

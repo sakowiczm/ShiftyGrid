@@ -43,6 +43,7 @@ internal class Program
         rootCommand.AddCommand(new SendMessageCommand().Create());
         rootCommand.AddCommand(new StatusCommand().Create());
         rootCommand.AddCommand(new AboutCommand().Create());
+        rootCommand.AddCommand(new ArrangeCommand().Create());
 
         return rootCommand;
     }    

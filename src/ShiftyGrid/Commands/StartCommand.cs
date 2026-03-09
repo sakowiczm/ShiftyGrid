@@ -640,7 +640,7 @@ public static class StartCommand
                     break;
 
                 case "arrange-split":
-                    await SendArrangeSplitRequestAsync();
+                    await SendArrangeRequestAsync(1, 2);
                     break;
 
                 case "promote-toggle":
@@ -649,11 +649,11 @@ public static class StartCommand
 
 
                 case "arrange-columns":
-                    await SendArrangeColumnsRequestAsync();
+                    await SendArrangeRequestAsync(1, 3);
                     break;
 
                 case "arrange-corners":
-                    await SendArrangeCornersRequestAsync();
+                    await SendArrangeRequestAsync(2, 2);
                     break;
 
                 case "organize-windows":
@@ -782,34 +782,6 @@ public static class StartCommand
         }
     }
 
-    private static async Task SendArrangeSplitRequestAsync()
-    {
-        if (_ipcClient == null)
-        {
-            Logger.Error("[Keyboard Action] IPC client not initialized");
-            return;
-        }
-
-        try
-        {
-            var request = new Request
-            {
-                Command = "arrange-split"
-            };
-
-            var response = await _ipcClient.SendRequestAsync(request);
-
-            if (!response.Success)
-            {
-                Logger.Error($"[Keyboard Action] Arrange failed: {response.Message}");
-            }
-        }
-        catch (Exception ex)
-        {
-            Logger.Error($"[Keyboard Action] Error sending arrange request: {ex.Message}", ex);
-        }
-    }
-
     private static async Task SendPromoteRequestAsync()
     {
         if (_ipcClient == null)
@@ -835,62 +807,6 @@ public static class StartCommand
         catch (Exception ex)
         {
             Logger.Error($"[Keyboard Action] Error sending promote request: {ex.Message}", ex);
-        }
-    }
-
-    private static async Task SendArrangeColumnsRequestAsync()
-    {
-        if (_ipcClient == null)
-        {
-            Logger.Error("[Keyboard Action] IPC client not initialized");
-            return;
-        }
-
-        try
-        {
-            var request = new Request
-            {
-                Command = "arrange-columns"
-            };
-
-            var response = await _ipcClient.SendRequestAsync(request);
-
-            if (!response.Success)
-            {
-                Logger.Error($"[Keyboard Action] Arrange columns failed: {response.Message}");
-            }
-        }
-        catch (Exception ex)
-        {
-            Logger.Error($"[Keyboard Action] Error sending arrange columns request: {ex.Message}", ex);
-        }
-    }
-
-    private static async Task SendArrangeCornersRequestAsync()
-    {
-        if (_ipcClient == null)
-        {
-            Logger.Error("[Keyboard Action] IPC client not initialized");
-            return;
-        }
-
-        try
-        {
-            var request = new Request
-            {
-                Command = "arrange-corners"
-            };
-
-            var response = await _ipcClient.SendRequestAsync(request);
-
-            if (!response.Success)
-            {
-                Logger.Error($"[Keyboard Action] Arrange corners failed: {response.Message}");
-            }
-        }
-        catch (Exception ex)
-        {
-            Logger.Error($"[Keyboard Action] Error sending arrange corners request: {ex.Message}", ex);
         }
     }
 
@@ -950,6 +866,37 @@ public static class StartCommand
         catch (Exception ex)
         {
             Logger.Error($"[Keyboard Action] Error sending focus request: {ex.Message}", ex);
+        }
+    }
+
+    private static async Task SendArrangeRequestAsync(int rows, int cols)
+    {
+        if (_ipcClient == null)
+        {
+            Logger.Error("[Keyboard Action] IPC client not initialized");
+            return;
+        }
+
+        try
+        {
+            var request = new Request
+            {
+                Command = "arrange",
+                Data = System.Text.Json.JsonSerializer.SerializeToElement(
+                    new Handlers.ArrangeOptions(rows, cols),
+                    IpcJsonContext.Default.ArrangeOptions)
+            };
+
+            var response = await _ipcClient.SendRequestAsync(request);
+
+            if (!response.Success)
+            {
+                Logger.Error($"[Keyboard Action] Arrange failed: {response.Message}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"[Keyboard Action] Error sending arrange request: {ex.Message}", ex);
         }
     }
 }
