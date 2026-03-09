@@ -260,7 +260,7 @@ internal static class WindowNeighborHelper
     /// <summary>
     /// Check if the candidate window is significantly overlapped by any window in front of it
     /// </summary>
-    private static bool IsObscuredByOtherWindows(Window candidateWindow, List<Window> allWindows)
+    public static bool IsObscuredByOtherWindows(Window candidateWindow, List<Window> allWindows)
     {
         int shadowThreshold = GetShadowThreshold(candidateWindow.DPI);
 

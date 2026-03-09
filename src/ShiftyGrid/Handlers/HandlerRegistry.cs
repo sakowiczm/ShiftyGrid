@@ -25,6 +25,7 @@ internal class HandlerRegistry : IRequestHandler
         _handlers[ArrangeColumnsCommand.Name] = new ArrangeColumnsHandler();
         _handlers[ArrangeCornersCommand.Name] = new ArrangeCornersHandler();
         _handlers[OrganizeCommand.Name] = new OrganizeCommandHandler();
+        _handlers[FocusCommand.Name] = new FocusCommandHandler();
     }
 
     public Response Handle(Request request)

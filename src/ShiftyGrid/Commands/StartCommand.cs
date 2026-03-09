@@ -102,6 +102,7 @@ public static class StartCommand
         PromoteWindowsKeyboardShortcuts();
         ArrangeColumnsAndCornersKeyboardShortcuts();
         OrganizeWindowsKeyboardShortcut();
+        FocusNavigationKeyboardShortcuts();
 
         // Start keyboard engine (hook installed on main thread)
         _keyboardEngine.Start();
@@ -509,6 +510,47 @@ public static class StartCommand
         _keyboardEngine!.RegisterShortcut(organizeShortcut);
     }
 
+    private static void FocusNavigationKeyboardShortcuts()
+    {
+        // Focus navigation (Win + Ctrl + Arrow) - changes focus without swapping positions
+        var focusLeft = new ShortcutDefinition(
+            id: "focus-left",
+            keyCombination: new KeyCombination(Keys.VK_LEFT, ModifierKeys.Control | ModifierKeys.Win),
+            actionId: "focus-left",
+            scope: ShortcutScope.Global,
+            blockKey: true
+        );
+
+        var focusRight = new ShortcutDefinition(
+            id: "focus-right",
+            keyCombination: new KeyCombination(Keys.VK_RIGHT, ModifierKeys.Control | ModifierKeys.Win),
+            actionId: "focus-right",
+            scope: ShortcutScope.Global,
+            blockKey: true
+        );
+
+        var focusUp = new ShortcutDefinition(
+            id: "focus-up",
+            keyCombination: new KeyCombination(Keys.VK_UP, ModifierKeys.Control | ModifierKeys.Win),
+            actionId: "focus-up",
+            scope: ShortcutScope.Global,
+            blockKey: true
+        );
+
+        var focusDown = new ShortcutDefinition(
+            id: "focus-down",
+            keyCombination: new KeyCombination(Keys.VK_DOWN, ModifierKeys.Control | ModifierKeys.Win),
+            actionId: "focus-down",
+            scope: ShortcutScope.Global,
+            blockKey: true
+        );
+
+        _keyboardEngine!.RegisterShortcut(focusLeft);
+        _keyboardEngine!.RegisterShortcut(focusRight);
+        _keyboardEngine!.RegisterShortcut(focusUp);
+        _keyboardEngine!.RegisterShortcut(focusDown);
+    }
+
     private static async void OnShortcutTriggered(object? sender, KeyboardTriggeredEventArgs e)
     {
         Logger.Info($"Shortcut triggered: {e.Shortcut.Id} (Action: {e.Shortcut.ActionId})");
@@ -616,6 +658,19 @@ public static class StartCommand
 
                 case "organize-windows":
                     await SendOrganizeRequestAsync();
+                    break;
+
+                case "focus-left":
+                    await SendFocusRequestAsync(Direction.Left);
+                    break;
+                case "focus-right":
+                    await SendFocusRequestAsync(Direction.Right);
+                    break;
+                case "focus-up":
+                    await SendFocusRequestAsync(Direction.Up);
+                    break;
+                case "focus-down":
+                    await SendFocusRequestAsync(Direction.Down);
                     break;
 
             }
@@ -864,6 +919,37 @@ public static class StartCommand
         catch (Exception ex)
         {
             Logger.Error($"[Keyboard Action] Error sending organize request: {ex.Message}", ex);
+        }
+    }
+
+    private static async Task SendFocusRequestAsync(Direction direction)
+    {
+        if (_ipcClient == null)
+        {
+            Logger.Error("[Keyboard Action] IPC client not initialized");
+            return;
+        }
+
+        try
+        {
+            var request = new Request
+            {
+                Command = "focus",
+                Data = System.Text.Json.JsonSerializer.SerializeToElement(
+                    direction,
+                    IpcJsonContext.Default.Direction)
+            };
+
+            var response = await _ipcClient.SendRequestAsync(request);
+
+            if (!response.Success)
+            {
+                Logger.Error($"[Keyboard Action] Focus navigation failed: {response.Message}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"[Keyboard Action] Error sending focus request: {ex.Message}", ex);
         }
     }
 }
