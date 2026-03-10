@@ -1,4 +1,6 @@
-﻿namespace ShiftyGrid.Commands;
+﻿using System.CommandLine;
+
+namespace ShiftyGrid.Commands;
 
 /// <summary>
 /// Promote active window to main position CenterWide. Shortcut window gets back to it's pervious position.
@@ -9,6 +11,14 @@ public class PromoteCommand : BaseCommand
 {
     public const string Name = "promote";
 
+    public Command Create()
+    {
+        var promoteCommand = new Command(Name,
+            "Toggle promotion of foreground window");
+        promoteCommand.SetHandler(async () => await SendAsync(""));
+        return promoteCommand;
+    }
+
     public async Task SendAsync(string data) =>
-        await SendRequestAsync("Sending promote command to running instance...", Name, data);
+        await SendRequestAsync($"Sending {Name} command to running instance...", Name, data);
 }

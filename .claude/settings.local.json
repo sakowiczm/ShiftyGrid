@@ -6,7 +6,8 @@
       "Bash(dotnet clean:*)",
       "Bash(xargs grep:*)",
       "Bash(grep:*)",
-      "Bash(git log:*)"
+      "Bash(git log:*)",
+      "Bash(ls:*)"
     ],
     "deny": [
       "Bash(git commit:*)",

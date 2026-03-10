@@ -14,5 +14,5 @@ public class StatusCommand : BaseCommand
         return exitCommand;
     }
 
-    private async Task SendAsync() => await SendRequestAsync("Sending status command to running instance...", Name);
+    private async Task SendAsync() => await SendRequestAsync($"Sending {Name} command to running instance...", Name);
 }

@@ -8,30 +8,8 @@ using Windows.Win32.UI.WindowsAndMessaging;
 
 namespace ShiftyGrid.Handlers;
 
-// todo: extrat
-
-internal enum Direction
-{
-    Left,
-    Right,
-    Up,
-    Down
-}
-
 internal class SwapCommandHandler : RequestHandler<Direction>
 {
-
-    // todo:
-    //  - consider different name
-    //  
-    //  When we have two adjecent windows (within x pixels, not overlaping) we can swap it's positions
-    //  no matter if this is horizontal or vertical swap.
-
-    // Swap Left    Ctrl + Alt + Left Arrow
-    // Swap Right   Ctrl + Alt + Right Arrow
-    // Swap Up    Ctrl + Alt + Up
-    // Swap Down   Ctrl + Alt + Down
-
     protected override Response Handle(Direction direction)
     {
         try

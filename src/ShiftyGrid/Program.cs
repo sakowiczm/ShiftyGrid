@@ -40,10 +40,16 @@ internal class Program
 
         rootCommand.AddCommand(StartCommand.Create());
         rootCommand.AddCommand(new ExitCommand().Create());
-        rootCommand.AddCommand(new SendMessageCommand().Create());
         rootCommand.AddCommand(new StatusCommand().Create());
         rootCommand.AddCommand(new AboutCommand().Create());
+
+        rootCommand.AddCommand(new MoveCommand().Create());
         rootCommand.AddCommand(new ArrangeCommand().Create());
+        rootCommand.AddCommand(new OrganizeCommand().Create());
+        rootCommand.AddCommand(new SwapCommand().Create());
+        rootCommand.AddCommand(new ResizeCommand().Create());
+        rootCommand.AddCommand(new PromoteCommand().Create());
+        rootCommand.AddCommand(new FocusCommand().Create());
 
         return rootCommand;
     }    

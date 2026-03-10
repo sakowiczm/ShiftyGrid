@@ -6,9 +6,6 @@ using System.Text.Json.Serialization.Metadata;
 
 namespace ShiftyGrid.Commands;
 
-// todo: not every one server command will be exposed as cli command
-// todo: command can be triggered also only by keyboard shortcut
-
 public abstract class BaseCommand
 {
     protected async Task SendRequestAsync<T>(string actionDescription, string command, T data)
@@ -76,6 +73,10 @@ public abstract class BaseCommand
             return (JsonTypeInfo<T>)(object)IpcJsonContext.Default.String;
         if (typeof(T) == typeof(Handlers.ArrangeOptions))
             return (JsonTypeInfo<T>)(object)IpcJsonContext.Default.ArrangeOptions;
+        if (typeof(T) == typeof(Direction))
+            return (JsonTypeInfo<T>)(object)IpcJsonContext.Default.Direction;
+        if (typeof(T) == typeof(Handlers.WindowResize))
+            return (JsonTypeInfo<T>)(object)IpcJsonContext.Default.WindowResize;
 
         throw new NotSupportedException($"Type {typeof(T).Name} is not registered in IpcJsonContext");
     }

@@ -1,4 +1,6 @@
-﻿namespace ShiftyGrid.Commands;
+﻿using System.CommandLine;
+
+namespace ShiftyGrid.Commands;
 
 /// <summary>
 /// Organize visible windows on the current monitor according to predefined position rules.
@@ -7,6 +9,14 @@ public class OrganizeCommand : BaseCommand
 {
     public const string Name = "organize";
 
+    public Command Create()
+    {
+        var organizeCommand = new Command(Name,
+            "Organize visible windows on current monitor according to predefined rules");
+        organizeCommand.SetHandler(async () => await SendAsync());
+        return organizeCommand;
+    }
+
     public async Task SendAsync() =>
-        await SendRequestAsync("Organizing windows on current monitor...", Name);
+        await SendRequestAsync($"Sending {Name} command to running instance...", Name);
 }

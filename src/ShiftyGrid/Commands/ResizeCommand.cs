@@ -1,6 +1,5 @@
 ﻿using ShiftyGrid.Common;
 using ShiftyGrid.Handlers;
-using ShiftyGrid.Server;
 using System.CommandLine;
 
 namespace ShiftyGrid.Commands;
@@ -9,41 +8,36 @@ internal class ResizeCommand : BaseCommand
 {
     public const string Name = "resize";
 
-    //public static Command Create()
-    //{
-    //    var resizeCommand = new Command(Name, "Resize the foreground window");
-
-    //    var directionArgument = new Argument<string>(
-    //        name: "direction",
-    //        description: "Direction to resize: left, right, up, down")
-    //    {
-    //        Arity = ArgumentArity.ExactlyOne
-    //    };
-
-    //    resizeCommand.AddArgument(directionArgument);
-    //    resizeCommand.SetHandler(Execute, directionArgument);
-
-    //    return resizeCommand;
-    //}
-
-    public async Task Execute(Direction? direction)
+    public Command Create()
     {
-        //if (string.IsNullOrEmpty(direction)) 
-        //{
-        //    Logger.Debug("Ivalid direction.");
-        //    return;
-        //}
+        var resizeCommand = new Command(Name, "Resize the foreground window");
 
-        //Direction? resizeDirection = direction.ToLowerInvariant() switch
-        //{
-        //    "left" => Direction.Left,
-        //    "right" => Direction.Right,
-        //    "up" => Direction.Up,
-        //    "down" => Direction.Down,
-        //    _ => null
-        //};
+        var directionArgument = new Argument<Direction>(
+            name: "direction",
+            description: "Direction: Left, Right, Up, Down"
+        );
 
+        resizeCommand.AddArgument(directionArgument);
+        resizeCommand.SetHandler(
+            async (direction) => await Execute(direction),
+            directionArgument
+        );
 
-        await SendRequestAsync($"Resizing window {direction}", Name, direction);
+        return resizeCommand;
+    }
+
+    public async Task Execute(Direction direction)
+    {
+        // Map Direction to WindowResize (defaulting to Expand operation)
+        var windowResize = direction switch
+        {
+            Direction.Left => WindowResize.ExpandLeft,
+            Direction.Right => WindowResize.ExpandRight,
+            Direction.Up => WindowResize.ExpandUp,
+            Direction.Down => WindowResize.ExpandDown,
+            _ => throw new ArgumentException($"Invalid direction: {direction}")
+        };
+
+        await SendRequestAsync($"Sending {Name} command to running instance...", Name, windowResize);
     }
 }

@@ -1,4 +1,5 @@
-﻿using ShiftyGrid.Handlers;
+﻿using ShiftyGrid.Common;
+using ShiftyGrid.Handlers;
 using Windows.Win32.Foundation;
 
 namespace ShiftyGrid.Windows;

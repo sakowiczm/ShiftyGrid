@@ -15,7 +15,6 @@ internal class HandlerRegistry : IRequestHandler
 
         // Register handlers
         _handlers[ExitCommand.Name] = new ExitCommandHandler(setShouldExit, getShouldExit, mainThreadId);
-        _handlers[SendMessageCommand.Name] = new SendMessageCommandHandler();
         _handlers[StatusCommand.Name] = new StatusCommandHandler();
         _handlers[MoveCommand.Name] = new MoveCommandHandler();
         _handlers[SwapCommand.Name] = new SwapCommandHandler();

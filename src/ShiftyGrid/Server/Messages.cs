@@ -1,7 +1,9 @@
-﻿using ShiftyGrid.Configuration;
+﻿using ShiftyGrid.Common;
+using ShiftyGrid.Configuration;
 using ShiftyGrid.Handlers;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.Json.Serialization.Metadata;
 
 namespace ShiftyGrid.Server;
 
@@ -92,5 +94,6 @@ public class Response
 [JsonSerializable(typeof(ArrangeOptions))]
 internal partial class IpcJsonContext : JsonSerializerContext
 {
+
 }
 
