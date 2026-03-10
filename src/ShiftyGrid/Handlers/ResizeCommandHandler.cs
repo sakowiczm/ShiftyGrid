@@ -61,7 +61,6 @@ internal readonly record struct VerticalNeighbors(Window? Top, Window? Bottom);
 internal class ResizeCommandHandler : RequestHandler<WindowResize>
 {
     private const int MIN_WINDOW_GRID_SIZE = 2;   // Minimum window size in grid units (prevents windows from becoming too small)
-    private const int AESTHETIC_GAP = 2;          // Gap between windows (handled by WindowPositioner)
     private static readonly Grid DEFAULT_GRID = new Grid(12, 12);
 
     protected override Response Handle(WindowResize direction)
@@ -147,7 +146,7 @@ internal class ResizeCommandHandler : RequestHandler<WindowResize>
         // 7. Position focused window
         Logger.Debug($"  New focused grid: [{movement.FocusedNewPos.StartX},{movement.FocusedNewPos.StartY}] to [{movement.FocusedNewPos.EndX},{movement.FocusedNewPos.EndY}]");
 
-        if (!WindowPositioner.ChangePosition(focused, movement.FocusedNewPos, AESTHETIC_GAP))
+        if (!WindowPositioner.ChangePosition(focused, movement.FocusedNewPos, Config.Gap))
         {
             Logger.Error("Failed to position focused window");
             return false;
@@ -239,7 +238,7 @@ internal class ResizeCommandHandler : RequestHandler<WindowResize>
         // 7. Position focused window
         Logger.Debug($"  New focused grid: [{movement.FocusedNewPos.StartX},{movement.FocusedNewPos.StartY}] to [{movement.FocusedNewPos.EndX},{movement.FocusedNewPos.EndY}]");
 
-        if (!WindowPositioner.ChangePosition(focused, movement.FocusedNewPos, AESTHETIC_GAP))
+        if (!WindowPositioner.ChangePosition(focused, movement.FocusedNewPos, Config.Gap))
         {
             Logger.Error("Failed to position focused window");
             return false;
@@ -328,7 +327,7 @@ internal class ResizeCommandHandler : RequestHandler<WindowResize>
             return false;
 
         // Position neighbor first
-        if (!WindowPositioner.ChangePosition(neighbor, newPos, AESTHETIC_GAP))
+        if (!WindowPositioner.ChangePosition(neighbor, newPos, Config.Gap))
         {
             Logger.Error("Failed to position neighbor");
             return false;

@@ -4,6 +4,14 @@ namespace ShiftyGrid.Configuration;
 
 // todo: in the future we can have different grid for each monitor - would that make sense?
 
+public static class Config
+{
+    /// <summary>
+    /// The gap in pixels between windows for visual separation.
+    /// </summary>
+    public const int Gap = 4;
+}
+
 public record struct Grid([property: JsonPropertyName("collumns")] int Columns, [property: JsonPropertyName("rows")] int Rows);
 
 //public record struct Position(Grid Grid, int StartX, int StartY, int EndX, int EndY)

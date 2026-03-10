@@ -186,7 +186,7 @@ internal class PromoteCommandHandler : RequestHandler<string>
             var originalRect = activeWindow.Rect;
 
             // Move to CenterWide position
-            var positioned = WindowPositioner.ChangePosition(activeWindow, Position.CenterWide, gap: 2);
+            var positioned = WindowPositioner.ChangePosition(activeWindow, Position.CenterWide, Config.Gap);
             if (!positioned)
             {
                 Logger.Warning("Failed to position window to CenterWide");

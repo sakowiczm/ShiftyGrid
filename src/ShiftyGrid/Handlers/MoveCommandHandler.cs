@@ -14,7 +14,7 @@ internal class MoveCommandHandler : RequestHandler<Position>
         {
             // todo: Data validation?
 
-            var success = WindowPositioner.ChangePosition(data, 2);
+            var success = WindowPositioner.ChangePosition(data, Config.Gap);
             return success
                 ? Response.CreateSuccess("Window moved")
                 : Response.CreateError("Error moving window");

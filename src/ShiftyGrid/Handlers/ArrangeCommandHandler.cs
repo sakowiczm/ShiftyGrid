@@ -95,7 +95,7 @@ internal class ArrangeCommandHandler : RequestHandler<ArrangeOptions>
 
             Logger.Debug($"Arranging window '{window.Text}' to grid cell {i + 1} (row {i / cols + 1}, col {i % cols + 1})");
 
-            success &= WindowPositioner.ChangePosition(window, position, gap: 2);
+            success &= WindowPositioner.ChangePosition(window, position, Config.Gap);
         }
 
         return success;
