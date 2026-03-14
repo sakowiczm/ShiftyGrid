@@ -7,6 +7,7 @@ using System.Text.Json.Serialization.Metadata;
 namespace ShiftyGrid.Handlers;
 
 // todo: issue when initally window is samller than minimal size
+// todo: resize issues up or down - single window
 // todo: pass minimal size to ConvertWindowToGridPosition
 // todo: remove WindowResize as it's no longer necessary
 
@@ -146,7 +147,7 @@ internal class ResizeCommandHandler : RequestHandler<WindowResize>
         // 7. Position focused window
         Logger.Debug($"  New focused grid: [{movement.FocusedNewPos.StartX},{movement.FocusedNewPos.StartY}] to [{movement.FocusedNewPos.EndX},{movement.FocusedNewPos.EndY}]");
 
-        if (!WindowPositioner.ChangePosition(focused, movement.FocusedNewPos, Config.Gap))
+        if (!WindowPositioner.ChangePosition(focused, movement.FocusedNewPos, Config.GAP))
         {
             Logger.Error("Failed to position focused window");
             return false;
@@ -238,7 +239,7 @@ internal class ResizeCommandHandler : RequestHandler<WindowResize>
         // 7. Position focused window
         Logger.Debug($"  New focused grid: [{movement.FocusedNewPos.StartX},{movement.FocusedNewPos.StartY}] to [{movement.FocusedNewPos.EndX},{movement.FocusedNewPos.EndY}]");
 
-        if (!WindowPositioner.ChangePosition(focused, movement.FocusedNewPos, Config.Gap))
+        if (!WindowPositioner.ChangePosition(focused, movement.FocusedNewPos, Config.GAP))
         {
             Logger.Error("Failed to position focused window");
             return false;
@@ -327,7 +328,7 @@ internal class ResizeCommandHandler : RequestHandler<WindowResize>
             return false;
 
         // Position neighbor first
-        if (!WindowPositioner.ChangePosition(neighbor, newPos, Config.Gap))
+        if (!WindowPositioner.ChangePosition(neighbor, newPos, Config.GAP))
         {
             Logger.Error("Failed to position neighbor");
             return false;

@@ -73,7 +73,6 @@ FreeConsole
 
 ShowWindow
 SHOW_WINDOW_CMD
-SW_RESTORE
 
 
 SetForegroundWindow

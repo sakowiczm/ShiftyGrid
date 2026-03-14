@@ -289,7 +289,7 @@ internal class WindowEventMonitor : IDisposable
         // Apply position
         try
         {
-            return WindowPositioner.ChangePosition(window, matcher.Position, Config.Gap);
+            return WindowPositioner.ChangePosition(window, matcher.Position, Config.GAP);
         }
         catch (Exception ex)
         {

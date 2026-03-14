@@ -7,12 +7,6 @@ using Windows.Win32.UI.WindowsAndMessaging;
 
 namespace ShiftyGrid.Windows;
 
-// todo: we don't need whole configuration manager
-//  we reposition based on single position
-//  do we need some global Grid object or each grid position will be calculated on the fly? e.g good when switching on different monitors
-        
-        
-
 public class WindowPositioner
 {
     /// <summary>
@@ -24,8 +18,6 @@ public class WindowPositioner
         
         return window != null && ChangePosition(window, position, gap);
     }
-
-    // todo: have generic method to change window position - position calculation do elsewhere?
 
     internal static unsafe bool ChangePosition(Window window, Position position, int gap)
     {

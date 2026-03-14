@@ -105,7 +105,7 @@ internal class OrganizeCommandHandler : RequestHandler<string>
             // Apply position
             try
             {
-                var positioned = WindowPositioner.ChangePosition(window, matcher.Position, Config.Gap);
+                var positioned = WindowPositioner.ChangePosition(window, matcher.Position, Config.GAP);
                 if (positioned)
                 {
                     successCount++;

@@ -1,21 +1,16 @@
 ﻿using ShiftyGrid.Common;
-using ShiftyGrid.Handlers;
+using ShiftyGrid.Configuration;
 using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.Graphics.Gdi;
 
 namespace ShiftyGrid.Windows;
 
-// todo: rename class?
-
 /// <summary>
 /// Shared utility for finding adjacent windows using proximity detection
 /// </summary>
 internal static class WindowNeighborHelper
 {
-    // todo: move to configuration
-
-    public const int PROXIMITY_THRESHOLD = 20;   
     private const string IGNORED_WINDOW_CLASS = "ClunkyBordersOverlayClass";
 
     // todo: move to window either?
@@ -61,7 +56,7 @@ internal static class WindowNeighborHelper
             };
 
             // Skip windows that are not adjacent (negative distance or beyond threshold)
-            if (distance < 0 || distance > PROXIMITY_THRESHOLD)
+            if (distance < 0 || distance > Config.PROXIMITY_THRESHOLD)
                 continue;
 
             // Skip windows that are obscured by other windows

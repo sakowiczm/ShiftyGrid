@@ -29,7 +29,6 @@ internal static class ConsoleManager
                 // Redirect Console streams to the attached console
                 var stdoutHandle = PInvoke.GetStdHandle(STD_HANDLE.STD_OUTPUT_HANDLE);
                 var stderrHandle = PInvoke.GetStdHandle(STD_HANDLE.STD_ERROR_HANDLE);
-                //var stdinHandle = PInvoke.GetStdHandle(STD_HANDLE.STD_INPUT_HANDLE);
 
                 if (!stdoutHandle.IsNull)
                     Console.Out.Flush();
