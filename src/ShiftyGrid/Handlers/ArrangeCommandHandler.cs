@@ -14,6 +14,15 @@ public record ArrangeOptions(
 
 internal class ArrangeCommandHandler : RequestHandler<ArrangeOptions>
 {
+    private readonly WindowSelector _windowSelector;
+    private readonly int _gap;
+
+    public ArrangeCommandHandler(WindowSelector windowSelector, int gap)
+    {
+        _windowSelector = windowSelector ?? throw new ArgumentNullException(nameof(windowSelector));
+        _gap = gap;
+    }
+
     protected override Response Handle(ArrangeOptions options)
     {
         try
@@ -72,7 +81,7 @@ internal class ArrangeCommandHandler : RequestHandler<ArrangeOptions>
         int targetCount = rows * cols;
 
         // Select windows using 5-priority selection
-        var windows = WindowSelector.SelectWindowsForArrange(activeWindow, targetCount);
+        var windows = _windowSelector.SelectWindowsForArrange(activeWindow, targetCount);
 
         Logger.Debug($"Selected {windows.Count} windows for {rows}x{cols} grid");
 
@@ -95,7 +104,7 @@ internal class ArrangeCommandHandler : RequestHandler<ArrangeOptions>
 
             Logger.Debug($"Arranging window '{window.Text}' to grid cell {i + 1} (row {i / cols + 1}, col {i % cols + 1})");
 
-            success &= WindowPositioner.ChangePosition(window, position, Config.GAP);
+            success &= WindowPositioner.ChangePosition(window, position, _gap);
         }
 
         return success;

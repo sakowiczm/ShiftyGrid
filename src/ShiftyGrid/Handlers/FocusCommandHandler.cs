@@ -1,4 +1,5 @@
 ﻿using ShiftyGrid.Common;
+using ShiftyGrid.Configuration;
 using ShiftyGrid.Server;
 using ShiftyGrid.Windows;
 using System.Text.Json.Serialization.Metadata;
@@ -9,6 +10,15 @@ namespace ShiftyGrid.Handlers;
 
 internal class FocusCommandHandler : RequestHandler<Direction>
 {
+    private readonly WindowNeighborHelper _windowNeighborHelper;
+    private readonly WindowMatcher _windowMatcher;
+
+    public FocusCommandHandler(WindowNeighborHelper windowNeighborHelper, WindowMatcher windowMatcher)
+    {
+        _windowNeighborHelper = windowNeighborHelper ?? throw new ArgumentNullException(nameof(windowNeighborHelper));
+        _windowMatcher = windowMatcher ?? throw new ArgumentNullException(nameof(windowMatcher));
+    }
+
     protected override Response Handle(Direction direction)
     {
         try
@@ -40,7 +50,7 @@ internal class FocusCommandHandler : RequestHandler<Direction>
         }
 
         // First try direct adjacency using existing helper
-        var targetWindow = WindowNeighborHelper.GetAdjacentWindow(activeWindow, direction);
+        var targetWindow = _windowNeighborHelper.GetAdjacentWindow(activeWindow, direction);
 
         // If no adjacent window found, try wrap-around
         if (targetWindow == null)
@@ -79,7 +89,7 @@ internal class FocusCommandHandler : RequestHandler<Direction>
     /// </summary>
     private Window? GetWrapAroundWindow(Window activeWindow, Direction direction)
     {
-        var candidateWindows = WindowNeighborHelper.GetWindowsOnMonitor(activeWindow.MonitorHandle);
+        var candidateWindows = _windowNeighborHelper.GetWindowsOnMonitor(activeWindow.MonitorHandle);
 
         Window? bestMatch = null;
         int bestEdgePosition = direction switch
@@ -98,7 +108,7 @@ internal class FocusCommandHandler : RequestHandler<Direction>
                 continue;
 
             // Skip border overlay windows
-            if (window.ClassName == "ClunkyBordersOverlayClass")
+            if (_windowMatcher.ShouldIgnore(window))
                 continue;
 
             // Check for required overlap based on direction
@@ -110,7 +120,7 @@ internal class FocusCommandHandler : RequestHandler<Direction>
                 continue;
 
             // Skip windows that are obscured by other windows
-            if (WindowNeighborHelper.IsObscuredByOtherWindows(window, candidateWindows))
+            if (_windowNeighborHelper.IsObscuredByOtherWindows(window, candidateWindows))
             {
                 Logger.Debug($"FocusCommand: Skipping '{window.Text}' (z-order {window.ZOrder}) - obscured in wrap-around");
                 continue;

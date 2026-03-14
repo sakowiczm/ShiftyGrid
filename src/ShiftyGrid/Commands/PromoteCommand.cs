@@ -1,9 +1,12 @@
-﻿using System.CommandLine;
+﻿using ShiftyGrid.Configuration;
+using System.CommandLine;
 
 namespace ShiftyGrid.Commands;
 
+// todo: rename position to coordinates?
+
 /// <summary>
-/// Promote active window to main position CenterWide. Shortcut window gets back to it's pervious position.
+/// Promote active window to specified position. Promoted window gets back to its previous position on second call.
 /// If we have promoted window and we want to promote new window, old window automatically goes back to its
 /// original location.
 /// </summary>
@@ -14,11 +17,43 @@ public class PromoteCommand : BaseCommand
     public Command Create()
     {
         var promoteCommand = new Command(Name,
-            "Toggle promotion of foreground window");
-        promoteCommand.SetHandler(async () => await SendAsync(""));
+            "Toggle promotion of foreground window to specified position");
+
+        var positionOption = new Option<string>(
+            aliases: ["--position", "-p"],
+            description: "Position coordinates: startX,startY,endX,endY (e.g., \"1,0,11,12\")"
+        )
+        { IsRequired = true };
+
+        var gridOption = new Option<string>(
+            aliases: ["--grid", "-g"],
+            description: "Grid size in format NxM (e.g., \"12x12\")",
+            getDefaultValue: () => "12x12"
+        );
+
+        promoteCommand.AddOption(positionOption);
+        promoteCommand.AddOption(gridOption);
+
+        promoteCommand.SetHandler(
+            async (positionStr, gridStr) =>
+            {
+                try
+                {
+                    var position = GridParser.ParsePosition(positionStr, gridStr);
+                    await SendAsync(position);
+                }
+                catch (ArgumentException ex)
+                {
+                    Console.WriteLine($"Error: {ex.Message}");
+                }
+            },
+            positionOption,
+            gridOption
+        );
+
         return promoteCommand;
     }
 
-    public async Task SendAsync(string data) =>
-        await SendRequestAsync($"Sending {Name} command to running instance...", Name, data);
+    public async Task SendAsync(Position position) =>
+        await SendRequestAsync($"Sending {Name} command to running instance...", Name, position);
 }

@@ -1,4 +1,5 @@
 ﻿using ShiftyGrid.Common;
+using ShiftyGrid.Configuration;
 using Windows.Win32.Foundation;
 
 namespace ShiftyGrid.Windows;
@@ -6,9 +7,16 @@ namespace ShiftyGrid.Windows;
 /// <summary>
 /// Utility for selecting windows for arrange operations using a 5-priority selection strategy
 /// </summary>
-internal static class WindowSelector
+internal class WindowSelector
 {
-    private const string IGNORED_WINDOW_CLASS = "ClunkyBordersOverlayClass";
+    private readonly WindowNeighborHelper _windowNeighborHelper;
+    private readonly WindowMatcher _windowMatcher;
+
+    public WindowSelector(WindowNeighborHelper windowNeighborHelper, WindowMatcher windowMatcher)
+    {
+        _windowNeighborHelper = windowNeighborHelper ?? throw new ArgumentNullException(nameof(windowNeighborHelper));
+        _windowMatcher = windowMatcher ?? throw new ArgumentNullException(nameof(windowMatcher));
+    }
 
     /// <summary>
     /// Selects windows for arrange operation using 5-priority selection:
@@ -21,13 +29,13 @@ internal static class WindowSelector
     /// <param name="activeWindow">The currently active/focused window</param>
     /// <param name="targetCount">Maximum number of windows to select</param>
     /// <returns>List of selected windows in priority order</returns>
-    public static List<Window> SelectWindowsForArrange(Window activeWindow, int targetCount)
+    public List<Window> SelectWindowsForArrange(Window activeWindow, int targetCount)
     {
         if (targetCount < 1)
             return new List<Window>();
 
         var selected = new List<Window>();
-        var allWindows = WindowNeighborHelper.GetWindowsOnMonitor(activeWindow.MonitorHandle);
+        var allWindows = _windowNeighborHelper.GetWindowsOnMonitor(activeWindow.MonitorHandle);
         var selectedHandles = new HashSet<HWND>();
 
         // Priority 1: Start with active window
@@ -56,7 +64,7 @@ internal static class WindowSelector
             if (selected.Count >= targetCount)
                 break;
 
-            if (!selectedHandles.Contains(window.Handle) && window.ClassName != IGNORED_WINDOW_CLASS)
+            if (!selectedHandles.Contains(window.Handle) && !_windowMatcher.ShouldIgnore(window))
             {
                 selected.Add(window);
                 selectedHandles.Add(window.Handle);
@@ -66,7 +74,7 @@ internal static class WindowSelector
         return selected.Take(targetCount).ToList();
     }
 
-    private static void AddAdjacentWindows(
+    private void AddAdjacentWindows(
         Window activeWindow,
         List<Window> selected,
         HashSet<HWND> selectedHandles,
@@ -80,7 +88,7 @@ internal static class WindowSelector
             if (selected.Count >= targetCount)
                 break;
 
-            var adjacent = WindowNeighborHelper.GetAdjacentWindow(activeWindow, direction);
+            var adjacent = _windowNeighborHelper.GetAdjacentWindow(activeWindow, direction);
             if (adjacent != null && !selectedHandles.Contains(adjacent.Handle))
             {
                 selected.Add(adjacent);
@@ -89,7 +97,7 @@ internal static class WindowSelector
         }
     }
 
-    private static void AddFullyVisibleWindows(
+    private void AddFullyVisibleWindows(
         List<Window> allWindows,
         List<Window> selected,
         HashSet<HWND> selectedHandles,
@@ -103,7 +111,7 @@ internal static class WindowSelector
             if (selectedHandles.Contains(window.Handle))
                 continue;
 
-            if (window.ClassName == IGNORED_WINDOW_CLASS)
+            if (_windowMatcher.ShouldIgnore(window))
                 continue;
 
             // Check if window is fully visible (not obscured)

@@ -1,0 +1,152 @@
+general:
+  gap: 4
+  proximity_threshold: 20
+  auto_organize: true
+  log_level: info
+keyboard:
+  shortcuts:
+    - bindings:
+        - ctrl+alt+left
+      command: swap --direction left
+    - bindings:
+        - ctrl+alt+right
+      command: swap --direction right
+    - bindings:
+        - ctrl+alt+up
+      command: swap --direction up
+    - bindings:
+        - ctrl+alt+down
+      command: swap --direction down
+    - bindings:
+        - ctrl+win+left
+      command: focus --direction left
+    - bindings:
+        - ctrl+win+right
+      command: focus --direction right
+    - bindings:
+        - ctrl+win+up
+      command: focus --direction up
+    - bindings:
+        - ctrl+win+down
+      command: focus --direction down
+    - bindings:
+        - ctrl+alt+=
+        - ctrl+alt+plus
+      command: arrange --rows 1 --cols 2
+    - bindings:
+        - ctrl+alt+3
+      command: arrange --rows 1 --cols 3
+    - bindings:
+        - ctrl+alt+4
+      command: arrange --rows 2 --cols 2
+    - bindings:
+        - ctrl+alt+return
+      command: promote
+    - bindings:
+        - ctrl+shift+o
+      command: organize
+  modes:
+    - id: move_mode
+      name: Move Mode
+      activation:
+        - ctrl+shift+d
+      allow_escape: true
+      shortcuts:
+        - bindings:
+            - "1"
+          command: move --grid 12x12 --position 0,0,6,12
+        - bindings:
+            - "2"
+          command: move --grid 12x12 --position 6,0,12,12
+        - bindings:
+            - s
+          command: move --grid 12x12 --position 2,0,10,12
+        - bindings:
+            - space
+          command: move --grid 12x12 --position 1,0,11,12
+        - bindings:
+            - f
+          command: move --grid 12x12 --position 0,0,12,12
+        - bindings:
+            - ","
+            - comma
+          command: move --grid 12x12 --position 0,0,4,12
+        - bindings:
+            - "."
+            - period
+          command: move --grid 12x12 --position 4,0,8,12
+        - bindings:
+            - /
+            - slash
+          command: move --grid 12x12 --position 8,0,12,12
+        - bindings:
+            - o
+          command: move --grid 12x12 --position 0,0,6,6
+        - bindings:
+            - p
+          command: move --grid 12x12 --position 6,0,12,6
+        - bindings:
+            - k
+          command: move --grid 12x12 --position 0,6,6,12
+        - bindings:
+            - l
+          command: move --grid 12x12 --position 6,6,12,12
+    - id: resize_mode
+      name: Resize Mode
+      activation:
+        - ctrl+shift+r
+      allow_escape: true
+      shortcuts:
+        - bindings:
+            - left
+          command: resize --operation expand-left
+          exit_mode: false
+        - bindings:
+            - right
+          command: resize --operation expand-right
+          exit_mode: false
+        - bindings:
+            - up
+          command: resize --operation expand-up
+          exit_mode: false
+        - bindings:
+            - down
+          command: resize --operation expand-down
+          exit_mode: false
+        - bindings:
+            - shift+left
+          command: resize --operation shrink-left
+          exit_mode: false
+        - bindings:
+            - shift+right
+          command: resize --operation shrink-right
+          exit_mode: false
+        - bindings:
+            - shift+up
+          command: resize --operation shrink-up
+          exit_mode: false
+        - bindings:
+            - shift+down
+          command: resize --operation shrink-down
+          exit_mode: false
+organize:
+  rules:
+    - match:
+        process_name: WindowsTerminal
+      command: move --grid 12x12 --position 0,0,6,12
+    - match:
+        title_pattern: Slack
+      command: move --grid 12x12 --position 6,0,12,12
+    - match:
+        title_pattern: Docker Desktop
+      command: move --grid 12x12 --position 6,0,12,12
+    - match:
+        process_name: Fork
+      command: move --grid 12x12 --position 0,0,6,12
+    - match:
+        process_name: Code
+      command: move --grid 12x12 --position 0,0,6,12
+ignore:
+  rules:
+    - match:
+        class_name: ClunkyBordersOverlayClass

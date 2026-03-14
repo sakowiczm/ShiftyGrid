@@ -10,6 +10,13 @@ namespace ShiftyGrid.Handlers;
 
 internal class SwapCommandHandler : RequestHandler<Direction>
 {
+    private readonly WindowNeighborHelper _windowNeighborHelper;
+
+    public SwapCommandHandler(WindowNeighborHelper windowNeighborHelper)
+    {
+        _windowNeighborHelper = windowNeighborHelper ?? throw new ArgumentNullException(nameof(windowNeighborHelper));
+    }
+
     protected override Response Handle(Direction direction)
     {
         try
@@ -33,15 +40,13 @@ internal class SwapCommandHandler : RequestHandler<Direction>
 
     public bool Execute(Direction direction)
     {
-        // todo: unify logging
-
         var activeWindow = Window.GetForeground();
         if (activeWindow == null)
             return false;
 
         // todo: if active window is maximized or IsFullscreen or is one of the excluded windows or is not visible etc. abandon
 
-        var adjacentWindow = WindowNeighborHelper.GetAdjacentWindow(activeWindow, direction);
+        var adjacentWindow = _windowNeighborHelper.GetAdjacentWindow(activeWindow, direction);
         if (adjacentWindow == null)
             return false;
 
@@ -70,7 +75,7 @@ internal class SwapCommandHandler : RequestHandler<Direction>
 
         Logger.Debug($"Window1 Offsets: left={leftOffset1}, top={topOffset1}, width={widthOffset1}, height={heightOffset1}. Title: {window1.Text}");
         Logger.Debug($"Window2 Offsets: left={leftOffset2}, top={topOffset2}, width={widthOffset2}, height={heightOffset2}. Title: {window2.Text}");
-        
+
         // Position window1 where window2's visible rect was
         // Adjust for window1's own border offsets to ensure visible areas align
         int targetX1 = window2.Rect.left - leftOffset1;

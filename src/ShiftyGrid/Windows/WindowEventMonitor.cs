@@ -11,6 +11,8 @@ namespace ShiftyGrid.Windows;
 /// </summary>
 internal class WindowEventMonitor : IDisposable
 {
+    private readonly WindowMatcher _windowMatcher;
+    private readonly int _gap;
 
     /// <summary>
     /// State tracking for window organize attempts with progressive retry logic.
@@ -47,6 +49,12 @@ internal class WindowEventMonitor : IDisposable
     private const int MAX_ATTEMPTS = 3;
 
     private Timer? _cleanupTimer;
+
+    public WindowEventMonitor(WindowMatcher windowMatcher, int gap)
+    {
+        _windowMatcher = windowMatcher ?? throw new ArgumentNullException(nameof(windowMatcher));
+        _gap = gap;
+    }
 
     /// <summary>
     /// Starts monitoring window creation events.
@@ -250,20 +258,14 @@ internal class WindowEventMonitor : IDisposable
         }
     }
 
-    // todo: unify in WindowMatcher
-    private const string IGNORED_WINDOW_CLASS = "ClunkyBordersOverlayClass";
-
-    // todo: WindowEventMonitor should be standalone - what action is exetucted is a different thing
-    //  unit TryOrganizeWindow in OrganizeCommandHandler
-
     /// <summary>
     /// Attempts to organize a window if it matches any organize rule.
     /// Returns true if window was organized, false if no match or failed.
     /// </summary>
-    public static bool TryOrganizeWindow(Window window)
+    public bool TryOrganizeWindow(Window window)
     {
         // Skip ignored windows
-        if (window.ClassName == IGNORED_WINDOW_CLASS)
+        if (_windowMatcher.ShouldIgnore(window))
             return false;
 
         // Skip minimized windows
@@ -274,22 +276,20 @@ internal class WindowEventMonitor : IDisposable
         if (!window.IsParent)
             return false;
 
-        // todo: fix config reference
-
         // Find matching rule
-        var matcher = WindowMatcher.FindMatchingRule(window, OrganizeConfig.GetDefault());
-        if (matcher == null)
+        var matchingRule = _windowMatcher.FindOrganizeRule(window);
+        if (matchingRule == null || matchingRule.ParsedPosition == null)
         {
             Logger.Debug($"AutoOrganize: No match for '{window.Text}'");
             return false;
         }
 
-        Logger.Info($"AutoOrganize: Matched '{window.Text}' -> {matcher.Position}");
+        Logger.Info($"AutoOrganize: Matched '{window.Text}' -> {matchingRule.ParsedPosition}");
 
         // Apply position
         try
         {
-            return WindowPositioner.ChangePosition(window, matcher.Position, Config.GAP);
+            return WindowPositioner.ChangePosition(window, matchingRule.ParsedPosition.Value, _gap);
         }
         catch (Exception ex)
         {

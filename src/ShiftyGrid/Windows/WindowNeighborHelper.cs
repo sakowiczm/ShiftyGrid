@@ -9,16 +9,21 @@ namespace ShiftyGrid.Windows;
 /// <summary>
 /// Shared utility for finding adjacent windows using proximity detection
 /// </summary>
-internal static class WindowNeighborHelper
+internal class WindowNeighborHelper
 {
-    private const string IGNORED_WINDOW_CLASS = "ClunkyBordersOverlayClass";
+    private readonly WindowMatcher _windowMatcher;
+    private readonly int _proximityThreshold;
 
-    // todo: move to window either?
+    public WindowNeighborHelper(WindowMatcher windowMatcher, int proximityThreshold)
+    {
+        _windowMatcher = windowMatcher ?? throw new ArgumentNullException(nameof(windowMatcher));
+        _proximityThreshold = proximityThreshold;
+    }
 
     /// <summary>
     /// Finds the adjacent window in the specified direction from the active window
     /// </summary>
-    public static Window? GetAdjacentWindow(Window activeWindow, Direction direction)
+    public Window? GetAdjacentWindow(Window activeWindow, Direction direction)
     {
         // Only get windows on the same monitor as active window
         // Windows are returned in Z-order (top to bottom - most visible first)
@@ -42,7 +47,7 @@ internal static class WindowNeighborHelper
                 continue;
 
             // Skip ignored processes
-            if (window.ClassName == IGNORED_WINDOW_CLASS)
+            if (_windowMatcher.ShouldIgnore(window))
                 continue;
 
             // Calculate distance based on direction
@@ -56,7 +61,7 @@ internal static class WindowNeighborHelper
             };
 
             // Skip windows that are not adjacent (negative distance or beyond threshold)
-            if (distance < 0 || distance > Config.PROXIMITY_THRESHOLD)
+            if (distance < 0 || distance > _proximityThreshold)
                 continue;
 
             // Skip windows that are obscured by other windows
@@ -67,8 +72,6 @@ internal static class WindowNeighborHelper
             }
 
             // Calculate overlap size based on direction
-            // Horizontal swapping (Left/Right) uses vertical overlap
-            // Vertical swapping (Up/Down) uses horizontal overlap
             int overlapSize = (direction == Direction.Left || direction == Direction.Right)
                 ? CalculateVerticalOverlap(activeWindow.Rect, window.Rect)
                 : CalculateHorizontalOverlap(activeWindow.Rect, window.Rect);
@@ -86,12 +89,10 @@ internal static class WindowNeighborHelper
         return bestMatch;
     }
 
-    // todo: move to Window?
-
     /// <summary>
     /// Checks if a window has a reasonable size (used for elevated windows without readable text)
     /// </summary>
-    private static bool HasValidSize(Window window)
+    private bool HasValidSize(Window window)
     {
         var width = window.Rect.right - window.Rect.left;
         var height = window.Rect.bottom - window.Rect.top;
@@ -105,7 +106,7 @@ internal static class WindowNeighborHelper
     /// <summary>
     /// Gets all windows on the specified monitor in Z-order
     /// </summary>
-    public static List<Window> GetWindowsOnMonitor(HMONITOR targetMonitor)
+    public List<Window> GetWindowsOnMonitor(HMONITOR targetMonitor)
     {
         var windows = new List<Window>();
         int zOrder = 0; // Track Z-order position (0 = topmost)
@@ -132,7 +133,7 @@ internal static class WindowNeighborHelper
                         windows.Add(windowInfo);
 
                         // Only increment Z-order for non-ignored windows
-                        if (windowInfo.ClassName != IGNORED_WINDOW_CLASS)
+                        if (!_windowMatcher.ShouldIgnore(windowInfo))
                         {
                             zOrder++;
                         }
@@ -145,7 +146,7 @@ internal static class WindowNeighborHelper
         return windows;
     }
 
-    private static int CalculateLeftProximity(Window activeWindow, Window candidateWindow)
+    private int CalculateLeftProximity(Window activeWindow, Window candidateWindow)
     {
         // Check if candidate window is on the left side
         // candidate's right edge should be near active's left edge
@@ -158,7 +159,7 @@ internal static class WindowNeighborHelper
         return distance;
     }
 
-    private static int CalculateRightProximity(Window activeWindow, Window candidateWindow)
+    private int CalculateRightProximity(Window activeWindow, Window candidateWindow)
     {
         // Check if candidate window is on the right side
         // candidate's left edge should be near active's right edge
@@ -171,7 +172,7 @@ internal static class WindowNeighborHelper
         return distance;
     }
 
-    private static int CalculateUpProximity(Window activeWindow, Window candidateWindow)
+    private int CalculateUpProximity(Window activeWindow, Window candidateWindow)
     {
         // Check if candidate window is above
         // candidate's bottom edge should be near active's top edge
@@ -184,7 +185,7 @@ internal static class WindowNeighborHelper
         return distance;
     }
 
-    private static int CalculateDownProximity(Window activeWindow, Window candidateWindow)
+    private int CalculateDownProximity(Window activeWindow, Window candidateWindow)
     {
         // Check if candidate window is below
         // candidate's top edge should be near active's bottom edge
@@ -255,7 +256,7 @@ internal static class WindowNeighborHelper
     /// <summary>
     /// Check if the candidate window is significantly overlapped by any window in front of it
     /// </summary>
-    public static bool IsObscuredByOtherWindows(Window candidateWindow, List<Window> allWindows)
+    public bool IsObscuredByOtherWindows(Window candidateWindow, List<Window> allWindows)
     {
         int shadowThreshold = GetShadowThreshold(candidateWindow.DPI);
 
@@ -266,7 +267,7 @@ internal static class WindowNeighborHelper
                 continue;
 
             // Skip ignored processes
-            if (window.ClassName == IGNORED_WINDOW_CLASS)
+            if (_windowMatcher.ShouldIgnore(window))
                 continue;
 
             // Only check windows that are IN FRONT of the candidate
@@ -300,14 +301,14 @@ internal static class WindowNeighborHelper
 
     /// <summary>
     /// Finds a window in the specified direction for gap-closing during shrink operations.
-    /// Uses a larger search range than GetAdjacentWindow() to find windows with gaps > PROXIMITY_THRESHOLD.
+    /// Uses a larger search range than GetAdjacentWindow() to find windows with gaps > proximity threshold.
     /// Requires significant overlap (50% of smaller dimension) to ensure proper alignment.
     /// </summary>
     /// <param name="activeWindow">The window that is shrinking</param>
     /// <param name="direction">Direction to search for neighbors</param>
     /// <param name="maxSearchDistance">Maximum gap distance to search (default: monitor dimension)</param>
     /// <returns>The best candidate window for gap-closing, or null if none suitable</returns>
-    public static Window? FindWindowForGapClosing(
+    public Window? FindWindowForGapClosing(
         Window activeWindow,
         Direction direction,
         int? maxSearchDistance = null)
@@ -335,7 +336,7 @@ internal static class WindowNeighborHelper
             if (window.Handle == activeWindow.Handle)
                 continue;
 
-            if (window.ClassName == IGNORED_WINDOW_CLASS)
+            if (_windowMatcher.ShouldIgnore(window))
                 continue;
 
             // Calculate distance using existing proximity methods

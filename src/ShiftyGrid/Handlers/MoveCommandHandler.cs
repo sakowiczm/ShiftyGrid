@@ -8,13 +8,18 @@ namespace ShiftyGrid.Handlers;
 
 internal class MoveCommandHandler : RequestHandler<Position>
 {
+    private readonly int _gap;
+
+    public MoveCommandHandler(int gap)
+    {
+        _gap = gap;
+    }
+
     protected override Response Handle(Position data)
     {
         try
         {
-            // todo: Data validation?
-
-            var success = WindowPositioner.ChangePosition(data, Config.GAP);
+            var success = WindowPositioner.ChangePosition(data, _gap);
             return success
                 ? Response.CreateSuccess("Window moved")
                 : Response.CreateError("Error moving window");

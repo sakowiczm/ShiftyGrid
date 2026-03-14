@@ -11,8 +11,16 @@ namespace ShiftyGrid.Handlers;
 
 internal class OrganizeCommandHandler : RequestHandler<string>
 {
-    private static readonly OrganizeConfig _config = OrganizeConfig.GetDefault();
-    private const string IGNORED_WINDOW_CLASS = "ClunkyBordersOverlayClass";
+    private readonly WindowMatcher _windowMatcher;
+    private readonly WindowNeighborHelper _windowNeighborHelper;
+    private readonly int _gap;
+
+    public OrganizeCommandHandler(WindowMatcher windowMatcher, WindowNeighborHelper windowNeighborHelper, int gap)
+    {
+        _windowMatcher = windowMatcher ?? throw new ArgumentNullException(nameof(windowMatcher));
+        _windowNeighborHelper = windowNeighborHelper ?? throw new ArgumentNullException(nameof(windowNeighborHelper));
+        _gap = gap;
+    }
 
     protected override Response Handle(string data)
     {
@@ -60,7 +68,7 @@ internal class OrganizeCommandHandler : RequestHandler<string>
         }
 
         // Enumerate windows on current monitor
-        var windows = WindowNeighborHelper.GetWindowsOnMonitor(currentMonitor);
+        var windows = _windowNeighborHelper.GetWindowsOnMonitor(currentMonitor);
         Logger.Info($"OrganizeCommand: Found {windows.Count} windows on monitor");
 
         int successCount = 0;
@@ -69,9 +77,12 @@ internal class OrganizeCommandHandler : RequestHandler<string>
 
         foreach (var window in windows)
         {
-            // Skip ClunkyBorders overlay
-            if (window.ClassName == IGNORED_WINDOW_CLASS)
+            // Skip ignored windows (global ignore list from config)
+            if (_windowMatcher.ShouldIgnore(window))
+            {
+                Logger.Debug($"OrganizeCommand: Ignoring window '{window.Text}' (matched ignore rule)");
                 continue;
+            }
 
             // Skip minimized windows
             if (window.State == WindowState.Minimized)
@@ -91,21 +102,29 @@ internal class OrganizeCommandHandler : RequestHandler<string>
                 continue;
             }
 
-            // Find matching rule
-            var matcher = WindowMatcher.FindMatchingRule(window, _config);
-            if (matcher == null)
+            // Find matching organize rule
+            var matchedRule = _windowMatcher.FindOrganizeRule(window);
+
+            if (matchedRule == null)
             {
                 Logger.Debug($"OrganizeCommand: No match for window '{window.Text}' (class: {window.ClassName})");
                 continue;
             }
 
             matchedCount++;
-            Logger.Info($"OrganizeCommand: Matched '{window.Text}' -> {matcher.Position}");
+            Logger.Info($"OrganizeCommand: Matched '{window.Text}' -> {matchedRule.Command}");
 
-            // Apply position
+            // Use pre-parsed position from configuration
             try
             {
-                var positioned = WindowPositioner.ChangePosition(window, matcher.Position, Config.GAP);
+                if (matchedRule.ParsedPosition == null)
+                {
+                    Logger.Error($"OrganizeCommand: Rule has no parsed position: {matchedRule.Command}");
+                    failedCount++;
+                    continue;
+                }
+
+                var positioned = WindowPositioner.ChangePosition(window, matchedRule.ParsedPosition.Value, _gap);
                 if (positioned)
                 {
                     successCount++;
@@ -119,7 +138,7 @@ internal class OrganizeCommandHandler : RequestHandler<string>
             catch (Exception ex)
             {
                 failedCount++;
-                Logger.Error($"OrganizeCommand: Error positioning window '{window.Text}'", ex);
+                Logger.Error($"OrganizeCommand: Error processing window '{window.Text}': {ex.Message}", ex);
             }
         }
 

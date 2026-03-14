@@ -9,7 +9,7 @@ internal class Program
     private static int Main(string[] args)
     {
         ConsoleManager.Attach();
-    
+
         return CreateRootCommand().Invoke(args);
     }
 
@@ -19,7 +19,12 @@ internal class Program
 
         // the same options as start command
 
-        // todo: add --config
+        var configOption = new Option<string?>(
+            aliases: ["--config", "-c"],
+            description: "Path to configuration file (default: config.yaml in executable directory)")
+        {
+            ArgumentHelpName = "path"
+        };
 
         var logsPathOption = new Option<string?>(
             aliases: ["--logs", "-l"],
@@ -33,10 +38,11 @@ internal class Program
             getDefaultValue: () => "info",
             description: "Log level: none, debug, info, warn, error");
 
+        rootCommand.AddOption(configOption);
         rootCommand.AddOption(logsPathOption);
         rootCommand.AddOption(logLevelOption);
 
-        rootCommand.SetHandler(StartCommand.Execute, logsPathOption, logLevelOption);
+        rootCommand.SetHandler(StartCommand.Execute, configOption, logsPathOption, logLevelOption);
 
         rootCommand.AddCommand(StartCommand.Create());
         rootCommand.AddCommand(new ExitCommand().Create());
@@ -52,5 +58,5 @@ internal class Program
         rootCommand.AddCommand(new FocusCommand().Create());
 
         return rootCommand;
-    }    
+    }
 }

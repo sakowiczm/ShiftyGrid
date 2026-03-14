@@ -19,7 +19,7 @@ internal record Window
     public RECT Rect { get; init; }
 
     public RECT ExtendedRect { get; init; }
-      
+
     public RECT MonitorRect { get; init; }
 
     public WindowState State { get; init; }
@@ -36,22 +36,22 @@ internal record Window
 
     public bool IsFullscreen { get; init; }
 
-    public RECT GetOverlayRect(int size = 0)
-    {
-        if (size == 0)
-            return Rect;
+    // public RECT GetOverlayRect(int size = 0)
+    // {
+    //     if (size == 0)
+    //         return Rect;
 
-        return RECT.FromXYWH(
-                Rect.X - size,
-                Rect.Y - size,
-                Rect.Width + 2 * size,
-                Rect.Height + 2 * size);
-    }
+    //     return RECT.FromXYWH(
+    //             Rect.X - size,
+    //             Rect.Y - size,
+    //             Rect.Width + 2 * size,
+    //             Rect.Height + 2 * size);
+    // }
 
-    public bool CanHaveBorder()
-    {
-        return State == WindowState.Normal && IsParent && !Rect.IsEmpty && !IsFullscreen;
-    }
+    // public bool CanHaveBorder()
+    // {
+    //     return State == WindowState.Normal && IsParent && !Rect.IsEmpty && !IsFullscreen;
+    // }
 
     public override string ToString()
     {
@@ -102,7 +102,7 @@ internal record Window
     /// Comprehensive readiness check for window positioning.
     /// Validates visibility, cloaking state, window state, dimensions, and transition status.
     /// </summary>
-    public unsafe bool IsWindowReadyForPositioning()
+    public bool IsWindowReadyForPositioning()
     {
         // Existing visibility and cloaking checks
         if (!IsWindowReady())
@@ -151,11 +151,11 @@ internal record Window
     }
 
 
-    public bool IsForeground() => IsForeground(Handle);
+    //public bool IsForeground() => IsForeground(Handle);
 
-    internal static bool IsForeground(HWND hwnd) => PInvoke.GetForegroundWindow() == hwnd;
+    //internal static bool IsForeground(HWND hwnd) => PInvoke.GetForegroundWindow() == hwnd;
 
-    public bool IsValidForBorder() => IsForeground() && IsWindowReady();
+    //public bool IsValidForBorder() => IsForeground() && IsWindowReady();
 
     public unsafe string? GetProcessName()
     {
@@ -234,8 +234,8 @@ internal record Window
             var isParent = IsParentWindow(hwnd);
             uint dpi = PInvoke.GetDpiForWindow(hwnd);
             var hMonitor = GetWindowMonitor(hwnd);
-            var monitorRect =  GetMonitor(hwnd);
-           
+            var monitorRect = GetMonitor(hwnd);
+
             // todo: if state is Maximized do not calculate isFullscreen 
 
             var isFullscreen = IsWindowFullscreen(hwnd, hMonitor, rect);
@@ -354,9 +354,9 @@ internal record Window
             }
 
             var monitorInfo = new MONITORINFO { cbSize = (uint)Marshal.SizeOf<MONITORINFO>() };
-            if (PInvoke.GetMonitorInfo(monitor, ref monitorInfo)) return 
+            if (PInvoke.GetMonitorInfo(monitor, ref monitorInfo)) return
                 monitorInfo.rcWork;
-            
+
             Logger.Error($"Window. Error getting monitor info. Error code: {Marshal.GetLastWin32Error()}.");
             return default;
         }
@@ -399,7 +399,7 @@ internal record Window
             return false;
         }
     }
-    
+
     private static WindowState GetState(HWND hwnd)
     {
         var placement = new WINDOWPLACEMENT();
@@ -423,7 +423,7 @@ internal record Window
         };
     }
 
-    private static bool IsWindowFullscreen(HWND hwnd,  HMONITOR hMonitor,  RECT windowRect)
+    private static bool IsWindowFullscreen(HWND hwnd, HMONITOR hMonitor, RECT windowRect)
     {
         try
         {

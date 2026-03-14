@@ -64,6 +64,15 @@ internal class ResizeCommandHandler : RequestHandler<WindowResize>
     private const int MIN_WINDOW_GRID_SIZE = 2;   // Minimum window size in grid units (prevents windows from becoming too small)
     private static readonly Grid DEFAULT_GRID = new Grid(12, 12);
 
+    private readonly WindowNeighborHelper _windowNeighborHelper;
+    private readonly int _gap;
+
+    public ResizeCommandHandler(WindowNeighborHelper windowNeighborHelper, int gap)
+    {
+        _windowNeighborHelper = windowNeighborHelper ?? throw new ArgumentNullException(nameof(windowNeighborHelper));
+        _gap = gap;
+    }
+
     protected override Response Handle(WindowResize direction)
     {
         try
@@ -147,7 +156,7 @@ internal class ResizeCommandHandler : RequestHandler<WindowResize>
         // 7. Position focused window
         Logger.Debug($"  New focused grid: [{movement.FocusedNewPos.StartX},{movement.FocusedNewPos.StartY}] to [{movement.FocusedNewPos.EndX},{movement.FocusedNewPos.EndY}]");
 
-        if (!WindowPositioner.ChangePosition(focused, movement.FocusedNewPos, Config.GAP))
+        if (!WindowPositioner.ChangePosition(focused, movement.FocusedNewPos, _gap))
         {
             Logger.Error("Failed to position focused window");
             return false;
@@ -239,7 +248,7 @@ internal class ResizeCommandHandler : RequestHandler<WindowResize>
         // 7. Position focused window
         Logger.Debug($"  New focused grid: [{movement.FocusedNewPos.StartX},{movement.FocusedNewPos.StartY}] to [{movement.FocusedNewPos.EndX},{movement.FocusedNewPos.EndY}]");
 
-        if (!WindowPositioner.ChangePosition(focused, movement.FocusedNewPos, Config.GAP))
+        if (!WindowPositioner.ChangePosition(focused, movement.FocusedNewPos, _gap))
         {
             Logger.Error("Failed to position focused window");
             return false;
@@ -303,15 +312,15 @@ internal class ResizeCommandHandler : RequestHandler<WindowResize>
 
     private HorizontalNeighbors GetHorizontalNeighbors(Window focused)
     {
-        var left = WindowNeighborHelper.GetAdjacentWindow(focused, Direction.Left);
-        var right = WindowNeighborHelper.GetAdjacentWindow(focused, Direction.Right);
+        var left = _windowNeighborHelper.GetAdjacentWindow(focused, Direction.Left);
+        var right = _windowNeighborHelper.GetAdjacentWindow(focused, Direction.Right);
         return new HorizontalNeighbors(left, right);
     }
 
     private VerticalNeighbors GetVerticalNeighbors(Window focused)
     {
-        var top = WindowNeighborHelper.GetAdjacentWindow(focused, Direction.Up);
-        var bottom = WindowNeighborHelper.GetAdjacentWindow(focused, Direction.Down);
+        var top = _windowNeighborHelper.GetAdjacentWindow(focused, Direction.Up);
+        var bottom = _windowNeighborHelper.GetAdjacentWindow(focused, Direction.Down);
         return new VerticalNeighbors(top, bottom);
     }
 
@@ -328,7 +337,7 @@ internal class ResizeCommandHandler : RequestHandler<WindowResize>
             return false;
 
         // Position neighbor first
-        if (!WindowPositioner.ChangePosition(neighbor, newPos, Config.GAP))
+        if (!WindowPositioner.ChangePosition(neighbor, newPos, _gap))
         {
             Logger.Error("Failed to position neighbor");
             return false;

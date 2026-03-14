@@ -9,13 +9,20 @@ using Windows.Win32.UI.WindowsAndMessaging;
 
 namespace ShiftyGrid.Handlers;
 
-internal class PromoteCommandHandler : RequestHandler<string>
+internal class PromoteCommandHandler : RequestHandler<Position>
 {
-    protected override Response Handle(string data)
+    private readonly int _gap;
+
+    public PromoteCommandHandler(int gap)
+    {
+        _gap = gap;
+    }
+
+    protected override Response Handle(Position data)
     {
         try
         {
-            var result = Execute();
+            var result = Execute(data);
             return result.Success
                 ? Response.CreateSuccess(result.Message)
                 : Response.CreateError(result.Message);
@@ -27,12 +34,12 @@ internal class PromoteCommandHandler : RequestHandler<string>
         }
     }
 
-    protected override JsonTypeInfo<string> GetJsonTypeInfo()
+    protected override JsonTypeInfo<Position> GetJsonTypeInfo()
     {
-        return IpcJsonContext.Default.String;
+        return IpcJsonContext.Default.Position;
     }
 
-    private (bool Success, string Message) Execute()
+    private (bool Success, string Message) Execute(Position targetPosition)
     {
         // Get the active window
         var activeWindow = Window.GetForeground();
@@ -180,16 +187,16 @@ internal class PromoteCommandHandler : RequestHandler<string>
                 stateManager.ClearPromotedWindow(monitor);
             }
 
-            // PROMOTE: save current position and move to CenterWide
-            Logger.Info($"Promoting window '{activeWindow.Text}' to CenterWide");
+            // PROMOTE: save current position and move to target position
+            Logger.Info($"Promoting window '{activeWindow.Text}' to position: {targetPosition}");
 
             var originalRect = activeWindow.Rect;
 
-            // Move to CenterWide position
-            var positioned = WindowPositioner.ChangePosition(activeWindow, Position.CenterWide, Config.GAP);
+            // Move to target position
+            var positioned = WindowPositioner.ChangePosition(activeWindow, targetPosition, _gap);
             if (!positioned)
             {
-                Logger.Warning("Failed to position window to CenterWide");
+                Logger.Warning($"Failed to position window to {targetPosition}");
                 return (false, "Failed to promote window");
             }
 
