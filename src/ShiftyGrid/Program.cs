@@ -1,5 +1,5 @@
-﻿using ShiftyGrid.Commands;
-using ShiftyGrid.Common;
+using ShiftyGrid.Infrastructure;
+using ShiftyGrid.Operations.Commands;
 using System.CommandLine;
 
 namespace ShiftyGrid;
@@ -9,7 +9,7 @@ internal class Program
     private static int Main(string[] args)
     {
         ConsoleManager.Attach();
-
+    
         return CreateRootCommand().Invoke(args);
     }
 
@@ -18,7 +18,6 @@ internal class Program
         var rootCommand = new RootCommand("ShiftyGrid - Window Management Utility");
 
         // the same options as start command
-
         var configOption = new Option<string?>(
             aliases: ["--config", "-c"],
             description: "Path to configuration file (default: config.yaml in executable directory)")
@@ -58,5 +57,5 @@ internal class Program
         rootCommand.AddCommand(new FocusCommand().Create());
 
         return rootCommand;
-    }
+    }    
 }

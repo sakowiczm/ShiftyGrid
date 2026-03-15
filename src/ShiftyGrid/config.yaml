@@ -7,28 +7,28 @@ keyboard:
   shortcuts:
     - bindings:
         - ctrl+alt+left
-      command: swap --direction left
+      command: swap left
     - bindings:
         - ctrl+alt+right
-      command: swap --direction right
+      command: swap right
     - bindings:
         - ctrl+alt+up
-      command: swap --direction up
+      command: swap up
     - bindings:
         - ctrl+alt+down
-      command: swap --direction down
+      command: swap down
     - bindings:
         - ctrl+win+left
-      command: focus --direction left
+      command: focus left
     - bindings:
         - ctrl+win+right
-      command: focus --direction right
+      command: focus right
     - bindings:
         - ctrl+win+up
-      command: focus --direction up
+      command: focus up
     - bindings:
         - ctrl+win+down
-      command: focus --direction down
+      command: focus down
     - bindings:
         - ctrl+alt+=
         - ctrl+alt+plus
@@ -41,7 +41,7 @@ keyboard:
       command: arrange --rows 2 --cols 2
     - bindings:
         - ctrl+alt+return
-      command: promote
+      command: promote --position 1,0,11,12 --grid 12x12
     - bindings:
         - ctrl+shift+o
       command: organize
@@ -99,35 +99,19 @@ keyboard:
       shortcuts:
         - bindings:
             - left
-          command: resize --operation expand-left
+          command: resize left
           exit_mode: false
         - bindings:
             - right
-          command: resize --operation expand-right
+          command: resize right
           exit_mode: false
         - bindings:
             - up
-          command: resize --operation expand-up
+          command: resize up
           exit_mode: false
         - bindings:
             - down
-          command: resize --operation expand-down
-          exit_mode: false
-        - bindings:
-            - shift+left
-          command: resize --operation shrink-left
-          exit_mode: false
-        - bindings:
-            - shift+right
-          command: resize --operation shrink-right
-          exit_mode: false
-        - bindings:
-            - shift+up
-          command: resize --operation shrink-up
-          exit_mode: false
-        - bindings:
-            - shift+down
-          command: resize --operation shrink-down
+          command: resize down
           exit_mode: false
 organize:
   rules:

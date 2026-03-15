@@ -8,10 +8,6 @@ using ShiftyGrid.Common;
 
 namespace ShiftyGrid.Windows;
 
-/// <summary>
-/// Immutable record representing a Windows window with all its properties.
-/// Use WindowFactory to create instances from window handles.
-/// </summary>
 internal record Window
 {
     public required HWND Handle { get; init; }
@@ -23,7 +19,7 @@ internal record Window
     public RECT Rect { get; init; }
 
     public RECT ExtendedRect { get; init; }
-
+      
     public RECT MonitorRect { get; init; }
 
     public WindowState State { get; init; }
@@ -55,6 +51,58 @@ internal record Window
                     Rect: {Rect.left}, {Rect.top}, {Rect.right}, {Rect.bottom}
                     ExtendedRect: {ExtendedRect.left}, {ExtendedRect.top}, {ExtendedRect.right}, {ExtendedRect.bottom}
                 """;
+    }
+
+    /// <summary>
+    /// Creates a Window instance from a window handle.
+    /// </summary>
+    /// <param name="hwnd">Window handle</param>
+    /// <param name="zOrder">Position in Z-order stack (0 = topmost)</param>
+    /// <returns>Window instance or null if window is invalid</returns>
+    public static Window? FromHandle(HWND hwnd, int zOrder = 0)
+    {
+        try
+        {
+            if (!PInvoke.IsWindow(hwnd))
+            {
+                Logger.Debug($"Window. Window handle {hwnd} is no longer valid");
+                return null;
+            }
+
+            var className = GetClassName(hwnd);
+            var text = GetText(hwnd);
+            var rect = GetRect(hwnd);
+            var extendedRect = GetExtendedRect(hwnd);
+            var state = GetState(hwnd);
+            var isParent = IsParentWindow(hwnd);
+            uint dpi = PInvoke.GetDpiForWindow(hwnd);
+            var hMonitor = GetWindowMonitor(hwnd);
+            var monitorRect = GetMonitor(hwnd);
+
+            // todo: if state is Maximized do not calculate isFullscreen 
+            var isFullscreen = IsWindowFullscreen(hwnd, hMonitor, rect);
+
+            return new Window
+            {
+                Handle = hwnd,
+                ClassName = className,
+                Text = text,
+                Rect = rect,
+                ExtendedRect = extendedRect,
+                MonitorRect = monitorRect,
+                State = state,
+                IsParent = isParent,
+                DPI = dpi,
+                MonitorHandle = hMonitor,
+                IsFullscreen = isFullscreen,
+                ZOrder = zOrder,
+            };
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"Window. Error getting window {hwnd} information.", ex);
+            return null;
+        }
     }
 
     public unsafe bool IsWindowReady()
@@ -137,6 +185,13 @@ internal record Window
         return result.Succeeded && transitionsDisabled != 0;
     }
 
+
+    //public bool IsForeground() => IsForeground(Handle);
+
+    //internal static bool IsForeground(HWND hwnd) => PInvoke.GetForegroundWindow() == hwnd;
+
+    //public bool IsValidForBorder() => IsForeground() && IsWindowReady();
+
     public unsafe string? GetProcessName()
     {
         try
@@ -191,58 +246,6 @@ internal record Window
 
         Logger.Warning($"Window '{Text}' in unexpected state: {State}");
         return false;
-    }
-
-    /// <summary>
-    /// Creates a Window instance from a window handle.
-    /// </summary>
-    /// <param name="hwnd">Window handle</param>
-    /// <param name="zOrder">Position in Z-order stack (0 = topmost)</param>
-    /// <returns>Window instance or null if window is invalid</returns>
-    public static Window? FromHandle(HWND hwnd, int zOrder = 0)
-    {
-        try
-        {
-            if (!PInvoke.IsWindow(hwnd))
-            {
-                Logger.Debug($"Window. Window handle {hwnd} is no longer valid");
-                return null;
-            }
-
-            var className = GetClassName(hwnd);
-            var text = GetText(hwnd);
-            var rect = GetRect(hwnd);
-            var extendedRect = GetExtendedRect(hwnd);
-            var state = GetState(hwnd);
-            var isParent = IsParentWindow(hwnd);
-            uint dpi = PInvoke.GetDpiForWindow(hwnd);
-            var hMonitor = GetWindowMonitor(hwnd);
-            var monitorRect = GetMonitor(hwnd);
-
-            // todo: if state is Maximized do not calculate isFullscreen 
-            var isFullscreen = IsWindowFullscreen(hwnd, hMonitor, rect);
-
-            return new Window
-            {
-                Handle = hwnd,
-                ClassName = className,
-                Text = text,
-                Rect = rect,
-                ExtendedRect = extendedRect,
-                MonitorRect = monitorRect,
-                State = state,
-                IsParent = isParent,
-                DPI = dpi,
-                MonitorHandle = hMonitor,
-                IsFullscreen = isFullscreen,
-                ZOrder = zOrder,
-            };
-        }
-        catch (Exception ex)
-        {
-            Logger.Error($"Window. Error getting window {hwnd} information.", ex);
-            return null;
-        }
     }
 
     /// <summary>

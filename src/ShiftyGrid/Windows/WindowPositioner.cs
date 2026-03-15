@@ -1,9 +1,9 @@
-using ShiftyGrid.Common;
-using ShiftyGrid.Configuration;
 using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.Graphics.Gdi;
 using Windows.Win32.UI.WindowsAndMessaging;
+using ShiftyGrid.Infrastructure.Models;
+using ShiftyGrid.Common;
 
 namespace ShiftyGrid.Windows;
 
@@ -15,7 +15,7 @@ public class WindowPositioner
     public static bool ChangePosition(Position position, int gap)
     {
         var window = Window.GetForeground();
-
+        
         return window != null && ChangePosition(window, position, gap);
     }
 
@@ -88,14 +88,14 @@ public class WindowPositioner
 
             window = restoredWindow;
             Logger.Debug("Window restored successfully, proceeding with positioning");
-        }
+        }        
 
-        var offsets = WindowBorderCalculator.CalculateOffsets(window);
+        var offsets = WindowBorderService.CalculateOffsets(window);
         Logger.Debug($"Invisible border offsets - Left: {offsets.Left}, Top: {offsets.Top}, Right: {offsets.Right}, Bottom: {offsets.Bottom}");
 
         var (startX, startY, endX, endY) = position;
         Logger.Debug($"Grid position: ({startX},{startY}) to ({endX},{endY})");
-
+        
         var monitorWidth = window.MonitorRect.Width();
         var monitorHeight = window.MonitorRect.Height();
 
@@ -112,7 +112,7 @@ public class WindowPositioner
         var gapHeight = visualHeight - (gap * 2);
 
         // Adjust for invisible borders to achieve visual alignment
-        var (x, y, width, height) = WindowBorderCalculator.ApplyOffsets(gapX, gapY, gapWidth, gapHeight, offsets);
+        var (x, y, width, height) = WindowBorderService.ApplyOffsets(gapX, gapY, gapWidth, gapHeight, offsets);
 
         Logger.Debug($"Visual position: ({visualX}, {visualY}) size: {visualWidth}x{visualHeight}");
         Logger.Debug($"With {gap}px gap: ({gapX}, {gapY}) size: {gapWidth}x{gapHeight}");

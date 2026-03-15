@@ -1,4 +1,4 @@
-﻿using ShiftyGrid.Keyboard.Helpers;
+using ShiftyGrid.Keyboard.Helpers;
 using ShiftyGrid.Keyboard.Models;
 
 namespace ShiftyGrid.Configuration;

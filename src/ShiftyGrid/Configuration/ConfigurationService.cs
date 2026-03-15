@@ -1,4 +1,5 @@
-﻿using ShiftyGrid.Common;
+using ShiftyGrid.Common;
+using ShiftyGrid.Infrastructure.Models;
 using System.Text.RegularExpressions;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -242,8 +243,8 @@ public static class ConfigurationService
                     throw new ConfigurationException($"Organize rule command missing --position argument: {rule.Command}");
                 }
 
-                // Use GridParser to parse position
-                var position = GridParser.ParsePosition(positionString, gridString ?? "12x12");
+                // Use GridPositionParser to parse position
+                var position = Position.Parse(positionString, gridString ?? "12x12");
                 rule.ParsedPosition = position;
 
                 Logger.Debug($"Parsed organize rule: {rule.Command} -> Position({position.StartX},{position.StartY},{position.EndX},{position.EndY})");
@@ -343,16 +344,16 @@ public static class ConfigurationService
                 Shortcuts = new List<ShortcutConfig>
                 {
                     // Swap shortcuts
-                    new() { Bindings = new List<string> { "ctrl+alt+left" }, Command = "swap --direction left" },
-                    new() { Bindings = new List<string> { "ctrl+alt+right" }, Command = "swap --direction right" },
-                    new() { Bindings = new List<string> { "ctrl+alt+up" }, Command = "swap --direction up" },
-                    new() { Bindings = new List<string> { "ctrl+alt+down" }, Command = "swap --direction down" },
+                    new() { Bindings = new List<string> { "ctrl+alt+left" }, Command = "swap left" },
+                    new() { Bindings = new List<string> { "ctrl+alt+right" }, Command = "swap right" },
+                    new() { Bindings = new List<string> { "ctrl+alt+up" }, Command = "swap up" },
+                    new() { Bindings = new List<string> { "ctrl+alt+down" }, Command = "swap down" },
 
                     // Focus navigation
-                    new() { Bindings = new List<string> { "ctrl+win+left" }, Command = "focus --direction left" },
-                    new() { Bindings = new List<string> { "ctrl+win+right" }, Command = "focus --direction right" },
-                    new() { Bindings = new List<string> { "ctrl+win+up" }, Command = "focus --direction up" },
-                    new() { Bindings = new List<string> { "ctrl+win+down" }, Command = "focus --direction down" },
+                    new() { Bindings = new List<string> { "ctrl+win+left" }, Command = "focus left" },
+                    new() { Bindings = new List<string> { "ctrl+win+right" }, Command = "focus right" },
+                    new() { Bindings = new List<string> { "ctrl+win+up" }, Command = "focus up" },
+                    new() { Bindings = new List<string> { "ctrl+win+down" }, Command = "focus down" },
 
                     // Arrange shortcuts
                     new() { Bindings = new List<string> { "ctrl+alt+=", "ctrl+alt+plus" }, Command = "arrange --rows 1 --cols 2" },
@@ -360,7 +361,7 @@ public static class ConfigurationService
                     new() { Bindings = new List<string> { "ctrl+alt+4" }, Command = "arrange --rows 2 --cols 2" },
 
                     // Promote and organize
-                    new() { Bindings = new List<string> { "ctrl+alt+return" }, Command = "promote" },
+                    new() { Bindings = new List<string> { "ctrl+alt+return" }, Command = "promote --position 1,0,11,12 --grid 12x12" },
                     new() { Bindings = new List<string> { "ctrl+shift+o" }, Command = "organize" }
                 },
                 Modes = new List<ModeConfig>
@@ -395,14 +396,10 @@ public static class ConfigurationService
                         AllowEscape = true,
                         Shortcuts = new List<ModeShortcutConfig>
                         {
-                            new() { Bindings = new List<string> { "left" }, Command = "resize --operation expand-left", ExitMode = false },
-                            new() { Bindings = new List<string> { "right" }, Command = "resize --operation expand-right", ExitMode = false },
-                            new() { Bindings = new List<string> { "up" }, Command = "resize --operation expand-up", ExitMode = false },
-                            new() { Bindings = new List<string> { "down" }, Command = "resize --operation expand-down", ExitMode = false },
-                            new() { Bindings = new List<string> { "shift+left" }, Command = "resize --operation shrink-left", ExitMode = false },
-                            new() { Bindings = new List<string> { "shift+right" }, Command = "resize --operation shrink-right", ExitMode = false },
-                            new() { Bindings = new List<string> { "shift+up" }, Command = "resize --operation shrink-up", ExitMode = false },
-                            new() { Bindings = new List<string> { "shift+down" }, Command = "resize --operation shrink-down", ExitMode = false }
+                            new() { Bindings = new List<string> { "left" }, Command = "resize left", ExitMode = false },
+                            new() { Bindings = new List<string> { "right" }, Command = "resize right", ExitMode = false },
+                            new() { Bindings = new List<string> { "up" }, Command = "resize up", ExitMode = false },
+                            new() { Bindings = new List<string> { "down" }, Command = "resize down", ExitMode = false }
                         }
                     }
                 }

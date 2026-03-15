@@ -1,4 +1,4 @@
-﻿using ShiftyGrid.Common;
+using ShiftyGrid.Common;
 using System.IO.Pipes;
 using System.Text.Json;
 

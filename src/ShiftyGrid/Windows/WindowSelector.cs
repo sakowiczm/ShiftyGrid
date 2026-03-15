@@ -1,6 +1,5 @@
-﻿using ShiftyGrid.Common;
-using ShiftyGrid.Configuration;
 using Windows.Win32.Foundation;
+using ShiftyGrid.Infrastructure.Models;
 
 namespace ShiftyGrid.Windows;
 
@@ -9,12 +8,12 @@ namespace ShiftyGrid.Windows;
 /// </summary>
 internal class WindowSelector
 {
-    private readonly WindowNeighborHelper _windowNeighborHelper;
+    private readonly WindowNavigationService _WindowNavigationService;
     private readonly WindowMatcher _windowMatcher;
 
-    public WindowSelector(WindowNeighborHelper windowNeighborHelper, WindowMatcher windowMatcher)
+    public WindowSelector(WindowNavigationService WindowNavigationService, WindowMatcher windowMatcher)
     {
-        _windowNeighborHelper = windowNeighborHelper ?? throw new ArgumentNullException(nameof(windowNeighborHelper));
+        _WindowNavigationService = WindowNavigationService ?? throw new ArgumentNullException(nameof(WindowNavigationService));
         _windowMatcher = windowMatcher ?? throw new ArgumentNullException(nameof(windowMatcher));
     }
 
@@ -35,7 +34,7 @@ internal class WindowSelector
             return new List<Window>();
 
         var selected = new List<Window>();
-        var allWindows = _windowNeighborHelper.GetWindowsOnMonitor(activeWindow.MonitorHandle);
+        var allWindows = _WindowNavigationService.GetWindowsOnMonitor(activeWindow.MonitorHandle);
         var selectedHandles = new HashSet<HWND>();
 
         // Priority 1: Start with active window
@@ -88,7 +87,7 @@ internal class WindowSelector
             if (selected.Count >= targetCount)
                 break;
 
-            var adjacent = _windowNeighborHelper.GetAdjacentWindow(activeWindow, direction);
+            var adjacent = _WindowNavigationService.GetAdjacentWindow(activeWindow, direction);
             if (adjacent != null && !selectedHandles.Contains(adjacent.Handle))
             {
                 selected.Add(adjacent);

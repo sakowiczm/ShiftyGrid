@@ -1,6 +1,3 @@
-﻿using ShiftyGrid.Configuration;
-using Windows.Win32.Foundation;
-
 namespace ShiftyGrid.Windows;
 
 /// <summary>

@@ -1,7 +1,7 @@
 ﻿using Windows.Win32;
 using Windows.Win32.System.Console;
 
-namespace ShiftyGrid.Common;
+namespace ShiftyGrid.Infrastructure;
 
 /// <summary>
 /// Manages console attachment and output when launched from command line

@@ -1,8 +1,7 @@
-﻿using ShiftyGrid.Common;
-using ShiftyGrid.Configuration;
-using ShiftyGrid.Handlers;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using ShiftyGrid.Infrastructure.Models;
+using ShiftyGrid.Operations.Handlers;
 
 namespace ShiftyGrid.Server;
 
@@ -91,6 +90,17 @@ public class Response
 [JsonSerializable(typeof(Direction))]
 [JsonSerializable(typeof(WindowResize))]
 [JsonSerializable(typeof(ArrangeOptions))]
+//[JsonSerializable(typeof(ShiftyGridConfig))]
+//[JsonSerializable(typeof(GeneralSettings))]
+//[JsonSerializable(typeof(KeyboardSettings))]
+//[JsonSerializable(typeof(ShortcutConfig))]
+//[JsonSerializable(typeof(ModeConfig))]
+//[JsonSerializable(typeof(ModeShortcutConfig))]
+//[JsonSerializable(typeof(OrganizeSettings))]
+//[JsonSerializable(typeof(OrganizeRule))]
+//[JsonSerializable(typeof(IgnoreSettings))]
+//[JsonSerializable(typeof(IgnoreRule))]
+//[JsonSerializable(typeof(WindowMatchConfig))]
 internal partial class IpcJsonContext : JsonSerializerContext
 {
 

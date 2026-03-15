@@ -1,5 +1,5 @@
-﻿using Windows.Win32.Foundation;
-using ShiftyGrid.Common;
+using Windows.Win32.Foundation;
+using ShiftyGrid.Infrastructure.Models;
 
 namespace ShiftyGrid.Windows;
 

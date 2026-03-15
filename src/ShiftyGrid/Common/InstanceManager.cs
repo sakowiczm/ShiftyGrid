@@ -1,4 +1,6 @@
-﻿namespace ShiftyGrid.Common;
+﻿using ShiftyGrid.Common;
+
+namespace ShiftyGrid.Infrastructure;
 
 internal class InstanceManager : IDisposable
 {
