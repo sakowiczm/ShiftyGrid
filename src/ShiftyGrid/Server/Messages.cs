@@ -83,24 +83,14 @@ public class Response
 /// </summary>
 [JsonSerializable(typeof(Request))]
 [JsonSerializable(typeof(Response))]
-[JsonSerializable(typeof(Position))]
+[JsonSerializable(typeof(Coordinates))]
 [JsonSerializable(typeof(Grid))]
 [JsonSerializable(typeof(string))]
 [JsonSerializable(typeof(JsonElement))]
 [JsonSerializable(typeof(Direction))]
 [JsonSerializable(typeof(WindowResize))]
 [JsonSerializable(typeof(ArrangeOptions))]
-//[JsonSerializable(typeof(ShiftyGridConfig))]
-//[JsonSerializable(typeof(GeneralSettings))]
-//[JsonSerializable(typeof(KeyboardSettings))]
-//[JsonSerializable(typeof(ShortcutConfig))]
-//[JsonSerializable(typeof(ModeConfig))]
-//[JsonSerializable(typeof(ModeShortcutConfig))]
-//[JsonSerializable(typeof(OrganizeSettings))]
-//[JsonSerializable(typeof(OrganizeRule))]
-//[JsonSerializable(typeof(IgnoreSettings))]
-//[JsonSerializable(typeof(IgnoreRule))]
-//[JsonSerializable(typeof(WindowMatchConfig))]
+
 internal partial class IpcJsonContext : JsonSerializerContext
 {
 

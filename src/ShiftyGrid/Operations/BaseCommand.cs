@@ -70,8 +70,8 @@ public abstract class BaseCommand
     /// </summary>
     private JsonTypeInfo<T> GetJsonTypeInfo<T>()
     {
-        if (typeof(T) == typeof(Position))
-            return (JsonTypeInfo<T>)(object)IpcJsonContext.Default.Position;
+        if (typeof(T) == typeof(Coordinates))
+            return (JsonTypeInfo<T>)(object)IpcJsonContext.Default.Coordinates;
         if (typeof(T) == typeof(string))
             return (JsonTypeInfo<T>)(object)IpcJsonContext.Default.String;
         if (typeof(T) == typeof(ArrangeOptions))

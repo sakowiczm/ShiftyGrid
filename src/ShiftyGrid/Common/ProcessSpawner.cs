@@ -8,7 +8,7 @@ internal static class ProcessSpawner
     /// <summary>
     /// Spawns ShiftyGrid.exe with the specified command string (fire-and-forget)
     /// </summary>
-    /// <param name="commandString">Full command string (e.g., "move --position 0,0,6,12")</param>
+    /// <param name="commandString">Full command string (e.g., "move --coordinates 0,0,6,12")</param>
     public static void SpawnCommand(string commandString)
     {
         var exePath = Environment.ProcessPath

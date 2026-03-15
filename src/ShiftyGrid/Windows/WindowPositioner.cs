@@ -10,13 +10,13 @@ namespace ShiftyGrid.Windows;
 public class WindowPositioner
 {
     /// <summary>
-    /// Positions the foreground window to a specified position number
+    /// Positions the foreground window to a specified coordinates
     /// </summary>
-    public static bool ChangePosition(Position position, int gap)
+    public static bool ChangePosition(Coordinates coordinates, int gap)
     {
         var window = Window.GetForeground();
-        
-        return window != null && ChangePosition(window, position, gap);
+
+        return window != null && ChangePosition(window, coordinates, gap);
     }
 
     /// <summary>
@@ -26,8 +26,8 @@ public class WindowPositioner
     /// </summary>
     /// <param name="window">The window to convert</param>
     /// <param name="grid">The grid system to use</param>
-    /// <returns>Position in grid coordinates</returns>
-    internal static Position ConvertWindowToGridPosition(Window window, Grid grid)
+    /// <returns>Coordinates in grid space</returns>
+    internal static Coordinates ConvertWindowToGridPosition(Window window, Grid grid)
     {
         var monitor = window.MonitorRect;
         var rect = window.Rect; // Use visual rect, not ExtendedRect (shadows irrelevant to grid)
@@ -52,10 +52,10 @@ public class WindowPositioner
         if (endX - startX < 1) endX = startX + 2;
         if (endY - startY < 1) endY = startY + 2;
 
-        return new Position(grid, startX, startY, endX, endY);
+        return new Coordinates(grid, startX, startY, endX, endY);
     }
 
-    internal static unsafe bool ChangePosition(Window window, Position position, int gap)
+    internal static unsafe bool ChangePosition(Window window, Coordinates coordinates, int gap)
     {
         Logger.Debug($"Positioning window: {window.Text} (Handle: {window.Handle})");
         Logger.Debug($"Monitor work area: ({window.MonitorRect.left}, {window.MonitorRect.top}) - ({window.MonitorRect.right}, {window.MonitorRect.bottom})");
@@ -93,17 +93,17 @@ public class WindowPositioner
         var offsets = WindowBorderService.CalculateOffsets(window);
         Logger.Debug($"Invisible border offsets - Left: {offsets.Left}, Top: {offsets.Top}, Right: {offsets.Right}, Bottom: {offsets.Bottom}");
 
-        var (startX, startY, endX, endY) = position;
+        var (startX, startY, endX, endY) = coordinates;
         Logger.Debug($"Grid position: ({startX},{startY}) to ({endX},{endY})");
-        
+
         var monitorWidth = window.MonitorRect.Width();
         var monitorHeight = window.MonitorRect.Height();
 
         // Calculate desired visual position
-        var visualX = window.MonitorRect.left + (monitorWidth * startX / position.Grid.Columns);
-        var visualY = window.MonitorRect.top + (monitorHeight * startY / position.Grid.Rows);
-        var visualWidth = monitorWidth * (endX - startX) / position.Grid.Columns;
-        var visualHeight = monitorHeight * (endY - startY) / position.Grid.Rows;
+        var visualX = window.MonitorRect.left + (monitorWidth * startX / coordinates.Grid.Columns);
+        var visualY = window.MonitorRect.top + (monitorHeight * startY / coordinates.Grid.Rows);
+        var visualWidth = monitorWidth * (endX - startX) / coordinates.Grid.Columns;
+        var visualHeight = monitorHeight * (endY - startY) / coordinates.Grid.Rows;
 
         // Apply border gap
         var gapX = visualX + gap;
@@ -138,11 +138,11 @@ public class WindowPositioner
                 REDRAW_WINDOW_FLAGS.RDW_UPDATENOW
             );
 
-            Logger.Info($"Window positioned successfully to position {position}");
+            Logger.Info($"Window positioned successfully to coordinates {coordinates}");
         }
         else
         {
-            Logger.Error($"Failed to position window to position {position}");
+            Logger.Error($"Failed to position window to coordinates {coordinates}");
         }
 
         return result;

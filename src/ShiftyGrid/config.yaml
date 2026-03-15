@@ -41,7 +41,7 @@ keyboard:
       command: arrange --rows 2 --cols 2
     - bindings:
         - ctrl+alt+return
-      command: promote --position 1,0,11,12 --grid 12x12
+      command: promote --grid 12x12 --coordinates 1,0,11,12
     - bindings:
         - ctrl+shift+o
       command: organize
@@ -54,43 +54,43 @@ keyboard:
       shortcuts:
         - bindings:
             - "1"
-          command: move --grid 12x12 --position 0,0,6,12
+          command: move --grid 12x12 --coordinates 0,0,6,12
         - bindings:
             - "2"
-          command: move --grid 12x12 --position 6,0,12,12
+          command: move --grid 12x12 --coordinates 6,0,12,12
         - bindings:
             - s
-          command: move --grid 12x12 --position 2,0,10,12
+          command: move --grid 12x12 --coordinates 2,0,10,12
         - bindings:
             - space
-          command: move --grid 12x12 --position 1,0,11,12
+          command: move --grid 12x12 --coordinates 1,0,11,12
         - bindings:
             - f
-          command: move --grid 12x12 --position 0,0,12,12
+          command: move --grid 12x12 --coordinates 0,0,12,12
         - bindings:
             - ","
             - comma
-          command: move --grid 12x12 --position 0,0,4,12
+          command: move --grid 12x12 --coordinates 0,0,4,12
         - bindings:
             - "."
             - period
-          command: move --grid 12x12 --position 4,0,8,12
+          command: move --grid 12x12 --coordinates 4,0,8,12
         - bindings:
             - /
             - slash
-          command: move --grid 12x12 --position 8,0,12,12
+          command: move --grid 12x12 --coordinates 8,0,12,12
         - bindings:
             - o
-          command: move --grid 12x12 --position 0,0,6,6
+          command: move --grid 12x12 --coordinates 0,0,6,6
         - bindings:
             - p
-          command: move --grid 12x12 --position 6,0,12,6
+          command: move --grid 12x12 --coordinates 6,0,12,6
         - bindings:
             - k
-          command: move --grid 12x12 --position 0,6,6,12
+          command: move --grid 12x12 --coordinates 0,6,6,12
         - bindings:
             - l
-          command: move --grid 12x12 --position 6,6,12,12
+          command: move --grid 12x12 --coordinates 6,6,12,12
     - id: resize_mode
       name: Resize Mode
       activation:
@@ -117,19 +117,19 @@ organize:
   rules:
     - match:
         process_name: WindowsTerminal
-      command: move --grid 12x12 --position 0,0,6,12
+      command: move --grid 12x12 --coordinates 0,0,6,12
     - match:
         title_pattern: Slack
-      command: move --grid 12x12 --position 6,0,12,12
+      command: move --grid 12x12 --coordinates 6,0,12,12
     - match:
         title_pattern: Docker Desktop
-      command: move --grid 12x12 --position 6,0,12,12
+      command: move --grid 12x12 --coordinates 6,0,12,12
     - match:
         process_name: Fork
-      command: move --grid 12x12 --position 0,0,6,12
+      command: move --grid 12x12 --coordinates 0,0,6,12
     - match:
         process_name: Code
-      command: move --grid 12x12 --position 0,0,6,12
+      command: move --grid 12x12 --coordinates 0,0,6,12
 ignore:
   rules:
     - match:

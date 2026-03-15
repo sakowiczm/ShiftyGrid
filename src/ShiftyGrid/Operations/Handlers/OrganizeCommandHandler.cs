@@ -116,14 +116,14 @@ internal class OrganizeCommandHandler : RequestHandler<string>
             // Use pre-parsed position from configuration
             try
             {
-                if (matchedRule.ParsedPosition == null)
+                if (matchedRule.ParsedCoordinates == null)
                 {
                     Logger.Error($"OrganizeCommand: Rule has no parsed position: {matchedRule.Command}");
                     failedCount++;
                     continue;
                 }
 
-                var positioned = WindowPositioner.ChangePosition(window, matchedRule.ParsedPosition.Value, _gap);
+                var positioned = WindowPositioner.ChangePosition(window, matchedRule.ParsedCoordinates.Value, _gap);
                 if (positioned)
                 {
                     successCount++;

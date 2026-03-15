@@ -15,11 +15,11 @@ public class PromoteCommand : BaseCommand
     public Command Create()
     {
         var promoteCommand = new Command(Name,
-            "Toggle promotion of foreground window to specified position");
+            "Toggle promotion of foreground window to specified coordinates");
 
-        var positionOption = new Option<string>(
-            aliases: ["--position", "-p"],
-            description: "Position coordinates: startX,startY,endX,endY (e.g., \"1,0,11,12\")"
+        var coordinatesOption = new Option<string>(
+            aliases: ["--coordinates", "-c"],
+            description: "Coordinates: startX,startY,endX,endY (e.g., \"1,0,11,12\")"
         ) { IsRequired = true };
 
         var gridOption = new Option<string>(
@@ -28,29 +28,29 @@ public class PromoteCommand : BaseCommand
             getDefaultValue: () => "12x12"
         );
 
-        promoteCommand.AddOption(positionOption);
+        promoteCommand.AddOption(coordinatesOption);
         promoteCommand.AddOption(gridOption);
 
         promoteCommand.SetHandler(
-            async (positionStr, gridStr) =>
+            async (coordinatesStr, gridStr) =>
             {
                 try
                 {
-                    var position = Position.Parse(positionStr, gridStr);
-                    await SendAsync(position);
+                    var coordinates = Coordinates.Parse(coordinatesStr, gridStr);
+                    await SendAsync(coordinates);
                 }
                 catch (ArgumentException ex)
                 {
                     Console.WriteLine($"Error: {ex.Message}");
                 }
             },
-            positionOption,
+            coordinatesOption,
             gridOption
         );
 
         return promoteCommand;
     }
 
-    public async Task SendAsync(Position position) =>
-        await SendRequestAsync($"Sending {Name} command to running instance...", Name, position);
+    public async Task SendAsync(Coordinates coordinates) =>
+        await SendRequestAsync($"Sending {Name} command to running instance...", Name, coordinates);
 }

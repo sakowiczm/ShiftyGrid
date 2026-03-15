@@ -145,11 +145,11 @@ public class OrganizeRule
     public string Command { get; set; } = string.Empty;
 
     /// <summary>
-    /// Parsed position data (populated during configuration load)
+    /// Parsed coordinates data (populated during configuration load)
     /// This is NOT serialized to/from YAML - it's derived from Command
     /// </summary>
     [YamlIgnore]
-    public Position? ParsedPosition { get; set; }
+    public Coordinates? ParsedCoordinates { get; set; }
 }
 
 /// <summary>

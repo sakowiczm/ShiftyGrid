@@ -3,7 +3,7 @@
 namespace ShiftyGrid.Operations.Commands;
 
 /// <summary>
-/// Organize visible windows on the current monitor according to predefined position rules.
+/// Organize visible windows on the current monitor according to predefined coordinates.
 /// </summary>
 public class OrganizeCommand : BaseCommand
 {

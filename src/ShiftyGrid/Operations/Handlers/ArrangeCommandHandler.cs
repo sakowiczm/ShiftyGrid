@@ -92,33 +92,31 @@ internal class ArrangeCommandHandler : RequestHandler<ArrangeOptions>
             return false;
         }
 
-        // Generate grid positions
-        var positions = GenerateGridPositions(rows, cols);
+        var coordinates = GenerateGridCoordinates(rows, cols);
 
-        // Assign windows to positions (up to available windows)
+        // Assign windows to coordinates (up to available windows)
         bool success = true;
-        for (int i = 0; i < Math.Min(windows.Count, positions.Count); i++)
+        for (int i = 0; i < Math.Min(windows.Count, coordinates.Count); i++)
         {
             var window = windows[i];
-            var position = positions[i];
 
             Logger.Debug($"Arranging window '{window.Text}' to grid cell {i + 1} (row {i / cols + 1}, col {i % cols + 1})");
 
-            success &= WindowPositioner.ChangePosition(window, position, _gap);
+            success &= WindowPositioner.ChangePosition(window, coordinates[i], _gap);
         }
 
         return success;
     }
 
-    private List<Position> GenerateGridPositions(int rows, int cols)
+    private List<Coordinates> GenerateGridCoordinates(int rows, int cols)
     {
         const int gridSize = 12;
-        var positions = new List<Position>();
+        var positions = new List<Coordinates>();
 
         int cellWidth = gridSize / cols;
         int cellHeight = gridSize / rows;
 
-        // Generate positions in reading order (left-to-right, top-to-bottom)
+        // Generate coordinates in reading order (left-to-right, top-to-bottom)
         for (int row = 0; row < rows; row++)
         {
             for (int col = 0; col < cols; col++)
@@ -128,7 +126,7 @@ internal class ArrangeCommandHandler : RequestHandler<ArrangeOptions>
                 int endX = (col + 1) * cellWidth;
                 int endY = (row + 1) * cellHeight;
 
-                var position = new Position(
+                var coordinates = new Coordinates(
                     new Grid(gridSize, gridSize),
                     startX,
                     startY,
@@ -136,7 +134,7 @@ internal class ArrangeCommandHandler : RequestHandler<ArrangeOptions>
                     endY
                 );
 
-                positions.Add(position);
+                positions.Add(coordinates);
             }
         }
 

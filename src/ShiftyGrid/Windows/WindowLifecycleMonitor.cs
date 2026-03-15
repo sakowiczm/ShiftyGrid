@@ -277,18 +277,18 @@ internal class WindowLifecycleMonitor : IDisposable
 
         // Find matching rule
         var matchingRule = _windowMatcher.FindOrganizeRule(window);
-        if (matchingRule == null || matchingRule.ParsedPosition == null)
+        if (matchingRule == null || matchingRule.ParsedCoordinates == null)
         {
             Logger.Debug($"AutoOrganize: No match for '{window.Text}'");
             return false;
         }
 
-        Logger.Info($"AutoOrganize: Matched '{window.Text}' -> {matchingRule.ParsedPosition}");
+        Logger.Info($"AutoOrganize: Matched '{window.Text}' -> {matchingRule.ParsedCoordinates}");
 
-        // Apply position
+        // Apply coordinates
         try
         {
-            return WindowPositioner.ChangePosition(window, matchingRule.ParsedPosition.Value, _gap);
+            return WindowPositioner.ChangePosition(window, matchingRule.ParsedCoordinates.Value, _gap);
         }
         catch (Exception ex)
         {

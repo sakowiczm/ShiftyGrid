@@ -9,7 +9,7 @@ using ShiftyGrid.Common;
 
 namespace ShiftyGrid.Operations.Handlers;
 
-internal class PromoteCommandHandler : RequestHandler<Position>
+internal class PromoteCommandHandler : RequestHandler<Coordinates>
 {
     private readonly int _gap;
 
@@ -18,7 +18,7 @@ internal class PromoteCommandHandler : RequestHandler<Position>
         _gap = gap;
     }
 
-    protected override Response Handle(Position data)
+    protected override Response Handle(Coordinates data)
     {
         try
         {
@@ -34,12 +34,12 @@ internal class PromoteCommandHandler : RequestHandler<Position>
         }
     }
 
-    protected override JsonTypeInfo<Position> GetJsonTypeInfo()
+    protected override JsonTypeInfo<Coordinates> GetJsonTypeInfo()
     {
-        return IpcJsonContext.Default.Position;
+        return IpcJsonContext.Default.Coordinates;
     }
 
-    private (bool Success, string Message) Execute(Position targetPosition)
+    private (bool Success, string Message) Execute(Coordinates targetCoordinates)
     {
         // Get the active window
         var activeWindow = Window.GetForeground();
@@ -177,15 +177,15 @@ internal class PromoteCommandHandler : RequestHandler<Position>
             }
 
             // PROMOTE: save current position and move to target position
-            Logger.Info($"Promoting window '{activeWindow.Text}' to position: {targetPosition}");
+            Logger.Info($"Promoting window '{activeWindow.Text}' to coordinates: {targetCoordinates}");
 
             var originalRect = activeWindow.Rect;
 
-            // Move to target position
-            var positioned = WindowPositioner.ChangePosition(activeWindow, targetPosition, _gap);
+            // Move to target coordinates
+            var positioned = WindowPositioner.ChangePosition(activeWindow, targetCoordinates, _gap);
             if (!positioned)
             {
-                Logger.Warning($"Failed to position window to {targetPosition}");
+                Logger.Warning($"Failed to position window to {targetCoordinates}");
                 return (false, "Failed to promote window");
             }
 

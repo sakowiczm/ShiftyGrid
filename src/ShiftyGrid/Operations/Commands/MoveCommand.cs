@@ -9,11 +9,11 @@ public class MoveCommand : BaseCommand
 
     public Command Create()
     {
-        var moveCommand = new Command(Name, "Move the foreground window to specified grid position");
+        var moveCommand = new Command(Name, "Move the foreground window to specified grid coordinates");
 
-        var positionOption = new Option<string>(
-            aliases: ["--position", "-p"],
-            description: "Position coordinates: startX,startY,endX,endY (e.g., \"0,0,6,12\")"
+        var coordinatesOption = new Option<string>(
+            aliases: ["--coordinates", "-c"],
+            description: "Coordinates: startX,startY,endX,endY (e.g., \"0,0,6,12\")"
         )
         { IsRequired = true };
 
@@ -23,30 +23,30 @@ public class MoveCommand : BaseCommand
             description: "Grid size in format NxM (e.g., \"12x12\", \"24x24\")"
         );
 
-        moveCommand.AddOption(positionOption);
+        moveCommand.AddOption(coordinatesOption);
         moveCommand.AddOption(gridOption);
 
         moveCommand.SetHandler(
-            async (positionStr, gridStr) =>
+            async (coordinatesStr, gridStr) =>
             {
                 try
                 {
-                    var position = Position.Parse(positionStr, gridStr);
-                    await SendAsync(position);
+                    var coordinates = Coordinates.Parse(coordinatesStr, gridStr);
+                    await SendAsync(coordinates);
                 }
                 catch (ArgumentException ex)
                 {
                     Console.WriteLine($"Error: {ex.Message}");
                 }
             },
-            positionOption,
+            coordinatesOption,
             gridOption
         );
 
         return moveCommand;
     }
 
-    public async Task SendAsync(Position position) =>
-        await SendRequestAsync($"Sending {Name} command to running instance...", Name, position);
+    public async Task SendAsync(Coordinates coordinates) =>
+        await SendRequestAsync($"Sending {Name} command to running instance...", Name, coordinates);
 
 }

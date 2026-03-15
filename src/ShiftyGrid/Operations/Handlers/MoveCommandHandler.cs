@@ -6,7 +6,7 @@ using ShiftyGrid.Common;
 
 namespace ShiftyGrid.Operations.Handlers;
 
-internal class MoveCommandHandler : RequestHandler<Position>
+internal class MoveCommandHandler : RequestHandler<Coordinates>
 {
     private readonly int _gap;
 
@@ -15,7 +15,7 @@ internal class MoveCommandHandler : RequestHandler<Position>
         _gap = gap;
     }
 
-    protected override Response Handle(Position data)
+    protected override Response Handle(Coordinates data)
     {
         try
         {
@@ -33,8 +33,8 @@ internal class MoveCommandHandler : RequestHandler<Position>
         }
     }
 
-    protected override JsonTypeInfo<Position> GetJsonTypeInfo()
+    protected override JsonTypeInfo<Coordinates> GetJsonTypeInfo()
     {
-        return IpcJsonContext.Default.Position;
+        return IpcJsonContext.Default.Coordinates;
     }
 }
