@@ -8,6 +8,10 @@ using ShiftyGrid.Common;
 
 namespace ShiftyGrid.Windows;
 
+/// <summary>
+/// Immutable record representing a Windows window with all its properties.
+/// Use WindowFactory to create instances from window handles.
+/// </summary>
 internal record Window
 {
     public required HWND Handle { get; init; }
@@ -35,23 +39,6 @@ internal record Window
     public required HMONITOR MonitorHandle { get; init; }
 
     public bool IsFullscreen { get; init; }
-
-    // public RECT GetOverlayRect(int size = 0)
-    // {
-    //     if (size == 0)
-    //         return Rect;
-
-    //     return RECT.FromXYWH(
-    //             Rect.X - size,
-    //             Rect.Y - size,
-    //             Rect.Width + 2 * size,
-    //             Rect.Height + 2 * size);
-    // }
-
-    // public bool CanHaveBorder()
-    // {
-    //     return State == WindowState.Normal && IsParent && !Rect.IsEmpty && !IsFullscreen;
-    // }
 
     public override string ToString()
     {
@@ -150,13 +137,6 @@ internal record Window
         return result.Succeeded && transitionsDisabled != 0;
     }
 
-
-    //public bool IsForeground() => IsForeground(Handle);
-
-    //internal static bool IsForeground(HWND hwnd) => PInvoke.GetForegroundWindow() == hwnd;
-
-    //public bool IsValidForBorder() => IsForeground() && IsWindowReady();
-
     public unsafe string? GetProcessName()
     {
         try
@@ -213,9 +193,12 @@ internal record Window
         return false;
     }
 
-
-    // todo: ZOrder as nullable?
-
+    /// <summary>
+    /// Creates a Window instance from a window handle.
+    /// </summary>
+    /// <param name="hwnd">Window handle</param>
+    /// <param name="zOrder">Position in Z-order stack (0 = topmost)</param>
+    /// <returns>Window instance or null if window is invalid</returns>
     public static Window? FromHandle(HWND hwnd, int zOrder = 0)
     {
         try
@@ -237,7 +220,6 @@ internal record Window
             var monitorRect = GetMonitor(hwnd);
 
             // todo: if state is Maximized do not calculate isFullscreen 
-
             var isFullscreen = IsWindowFullscreen(hwnd, hMonitor, rect);
 
             return new Window
@@ -263,8 +245,10 @@ internal record Window
         }
     }
 
-    private static HMONITOR GetWindowMonitor(HWND hwnd) => PInvoke.MonitorFromWindow(hwnd, MONITOR_FROM_FLAGS.MONITOR_DEFAULTTONEAREST);
-
+    /// <summary>
+    /// Gets the currently focused foreground window.
+    /// </summary>
+    /// <returns>Window instance or null if no foreground window</returns>
     public static Window? GetForeground()
     {
         try
@@ -286,8 +270,10 @@ internal record Window
         }
     }
 
+    private static HMONITOR GetWindowMonitor(HWND hwnd) => PInvoke.MonitorFromWindow(hwnd, MONITOR_FROM_FLAGS.MONITOR_DEFAULTTONEAREST);
+
     /// <summary>
-    /// Window RECT with without shadow borders
+    /// Window RECT without shadow borders
     /// </summary>
     private static unsafe RECT GetRect(HWND hwnd)
     {
@@ -341,7 +327,6 @@ internal record Window
     }
 
     // todo: get from monitor cache
-
     private static RECT GetMonitor(HWND hwnd)
     {
         try
@@ -354,8 +339,8 @@ internal record Window
             }
 
             var monitorInfo = new MONITORINFO { cbSize = (uint)Marshal.SizeOf<MONITORINFO>() };
-            if (PInvoke.GetMonitorInfo(monitor, ref monitorInfo)) return
-                monitorInfo.rcWork;
+            if (PInvoke.GetMonitorInfo(monitor, ref monitorInfo))
+                return monitorInfo.rcWork;
 
             Logger.Error($"Window. Error getting monitor info. Error code: {Marshal.GetLastWin32Error()}.");
             return default;
@@ -427,9 +412,6 @@ internal record Window
     {
         try
         {
-            // Get the monitor that contains this window
-            //var hMonitor = PInvoke.MonitorFromWindow(hwnd, MONITOR_FROM_FLAGS.MONITOR_DEFAULTTONEAREST);
-
             if (hMonitor == IntPtr.Zero)
             {
                 Logger.Debug($"Window. Invalid monitor handle {hMonitor}.");

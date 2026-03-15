@@ -62,33 +62,25 @@ internal class SwapCommandHandler : RequestHandler<Direction>
         }
 
         // Calculate border offsets for each window
-        // These offsets account for invisible window borders/shadows
-        int leftOffset1 = window1.Rect.left - window1.ExtendedRect.left;
-        int topOffset1 = window1.Rect.top - window1.ExtendedRect.top;
-        int widthOffset1 = (window1.ExtendedRect.right - window1.ExtendedRect.left) - (window1.Rect.right - window1.Rect.left);
-        int heightOffset1 = (window1.ExtendedRect.bottom - window1.ExtendedRect.top) - (window1.Rect.bottom - window1.Rect.top);
+        // Calculate border offsets for both windows
+        var offsets1 = WindowBorderCalculator.CalculateOffsets(window1);
+        int widthOffset1 = WindowBorderCalculator.CalculateWidthOffset(window1);
+        int heightOffset1 = WindowBorderCalculator.CalculateHeightOffset(window1);
 
-        int leftOffset2 = window2.Rect.left - window2.ExtendedRect.left;
-        int topOffset2 = window2.Rect.top - window2.ExtendedRect.top;
-        int widthOffset2 = (window2.ExtendedRect.right - window2.ExtendedRect.left) - (window2.Rect.right - window2.Rect.left);
-        int heightOffset2 = (window2.ExtendedRect.bottom - window2.ExtendedRect.top) - (window2.Rect.bottom - window2.Rect.top);
+        var offsets2 = WindowBorderCalculator.CalculateOffsets(window2);
+        int widthOffset2 = WindowBorderCalculator.CalculateWidthOffset(window2);
+        int heightOffset2 = WindowBorderCalculator.CalculateHeightOffset(window2);
 
-        Logger.Debug($"Window1 Offsets: left={leftOffset1}, top={topOffset1}, width={widthOffset1}, height={heightOffset1}. Title: {window1.Text}");
-        Logger.Debug($"Window2 Offsets: left={leftOffset2}, top={topOffset2}, width={widthOffset2}, height={heightOffset2}. Title: {window2.Text}");
+        Logger.Debug($"Window1 Offsets: left={offsets1.Left}, top={offsets1.Top}, width={widthOffset1}, height={heightOffset1}. Title: {window1.Text}");
+        Logger.Debug($"Window2 Offsets: left={offsets2.Left}, top={offsets2.Top}, width={widthOffset2}, height={heightOffset2}. Title: {window2.Text}");
 
         // Position window1 where window2's visible rect was
-        // Adjust for window1's own border offsets to ensure visible areas align
-        int targetX1 = window2.Rect.left - leftOffset1;
-        int targetY1 = window2.Rect.top - topOffset1;
-        int targetWidth1 = (window2.Rect.right - window2.Rect.left) + widthOffset1;
-        int targetHeight1 = (window2.Rect.bottom - window2.Rect.top) + heightOffset1;
+        var (targetX1, targetY1, targetWidth1, targetHeight1) = WindowBorderCalculator.ApplyOffsets(
+            window2.Rect.left, window2.Rect.top, window2.Rect.Width(), window2.Rect.Height(), offsets1);
 
         // Position window2 where window1's visible rect was
-        // Adjust for window2's own border offsets to ensure visible areas align
-        int targetX2 = window1.Rect.left - leftOffset2;
-        int targetY2 = window1.Rect.top - topOffset2;
-        int targetWidth2 = (window1.Rect.right - window1.Rect.left) + widthOffset2;
-        int targetHeight2 = (window1.Rect.bottom - window1.Rect.top) + heightOffset2;
+        var (targetX2, targetY2, targetWidth2, targetHeight2) = WindowBorderCalculator.ApplyOffsets(
+            window1.Rect.left, window1.Rect.top, window1.Rect.Width(), window1.Rect.Height(), offsets2);
 
         // Perform the swap using SetWindowPos
         bool result1 = PInvoke.SetWindowPos(

@@ -92,21 +92,16 @@ internal class PromoteCommandHandler : RequestHandler<Position>
             }
 
             // Calculate current window's border offsets
-            // These offsets account for invisible window borders/shadows
-            int leftOffset = currentWindow.Rect.left - currentWindow.ExtendedRect.left;
-            int topOffset = currentWindow.Rect.top - currentWindow.ExtendedRect.top;
-            int widthOffset = (currentWindow.ExtendedRect.right - currentWindow.ExtendedRect.left) -
-                              (currentWindow.Rect.right - currentWindow.Rect.left);
-            int heightOffset = (currentWindow.ExtendedRect.bottom - currentWindow.ExtendedRect.top) -
-                               (currentWindow.Rect.bottom - currentWindow.Rect.top);
+            // Calculate border offsets to account for invisible window borders/shadows
+            int widthOffset = WindowBorderCalculator.CalculateWidthOffset(currentWindow);
+            int heightOffset = WindowBorderCalculator.CalculateHeightOffset(currentWindow);
+            var offsets = WindowBorderCalculator.CalculateOffsets(currentWindow);
 
-            Logger.Debug($"Demotion border offsets: left={leftOffset}, top={topOffset}, width={widthOffset}, height={heightOffset}");
+            Logger.Debug($"Demotion border offsets: left={offsets.Left}, top={offsets.Top}, width={widthOffset}, height={heightOffset}");
 
             // Convert visible coords to extended coords for SetWindowPos
-            int targetX = originalRect.left - leftOffset;
-            int targetY = originalRect.top - topOffset;
-            int targetWidth = originalRect.Width + widthOffset;
-            int targetHeight = originalRect.Height + heightOffset;
+            var (targetX, targetY, targetWidth, targetHeight) = WindowBorderCalculator.ApplyOffsets(
+                originalRect.left, originalRect.top, originalRect.Width, originalRect.Height, offsets);
 
             var success = PInvoke.SetWindowPos(
                 currentPromotedState.WindowHandle,
@@ -147,21 +142,15 @@ internal class PromoteCommandHandler : RequestHandler<Position>
                     if (prevWindow != null)
                     {
                         // Calculate border offsets for the previous window
-                        // These offsets account for invisible window borders/shadows
-                        int leftOffset = prevWindow.Rect.left - prevWindow.ExtendedRect.left;
-                        int topOffset = prevWindow.Rect.top - prevWindow.ExtendedRect.top;
-                        int widthOffset = (prevWindow.ExtendedRect.right - prevWindow.ExtendedRect.left) -
-                                          (prevWindow.Rect.right - prevWindow.Rect.left);
-                        int heightOffset = (prevWindow.ExtendedRect.bottom - prevWindow.ExtendedRect.top) -
-                                           (prevWindow.Rect.bottom - prevWindow.Rect.top);
+                        int widthOffset = WindowBorderCalculator.CalculateWidthOffset(prevWindow);
+                        int heightOffset = WindowBorderCalculator.CalculateHeightOffset(prevWindow);
+                        var offsets = WindowBorderCalculator.CalculateOffsets(prevWindow);
 
-                        Logger.Debug($"Auto-demotion border offsets: left={leftOffset}, top={topOffset}, width={widthOffset}, height={heightOffset}");
+                        Logger.Debug($"Auto-demotion border offsets: left={offsets.Left}, top={offsets.Top}, width={widthOffset}, height={heightOffset}");
 
                         // Convert visible coords to extended coords for SetWindowPos
-                        int targetX = prevRect.left - leftOffset;
-                        int targetY = prevRect.top - topOffset;
-                        int targetWidth = prevRect.Width + widthOffset;
-                        int targetHeight = prevRect.Height + heightOffset;
+                        var (targetX, targetY, targetWidth, targetHeight) = WindowBorderCalculator.ApplyOffsets(
+                            prevRect.left, prevRect.top, prevRect.Width, prevRect.Height, offsets);
 
                         PInvoke.SetWindowPos(
                             currentPromotedState.WindowHandle,

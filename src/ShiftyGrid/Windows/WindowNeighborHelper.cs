@@ -1,7 +1,6 @@
 ﻿using ShiftyGrid.Common;
 using ShiftyGrid.Configuration;
 using Windows.Win32;
-using Windows.Win32.Foundation;
 using Windows.Win32.Graphics.Gdi;
 
 namespace ShiftyGrid.Windows;
@@ -73,8 +72,8 @@ internal class WindowNeighborHelper
 
             // Calculate overlap size based on direction
             int overlapSize = (direction == Direction.Left || direction == Direction.Right)
-                ? CalculateVerticalOverlap(activeWindow.Rect, window.Rect)
-                : CalculateHorizontalOverlap(activeWindow.Rect, window.Rect);
+                ? WindowGeometry.CalculateVerticalOverlap(activeWindow.Rect, window.Rect)
+                : WindowGeometry.CalculateHorizontalOverlap(activeWindow.Rect, window.Rect);
 
             // Prioritize windows with larger border overlap
             // If overlap is the same, prefer closer distance
@@ -94,8 +93,8 @@ internal class WindowNeighborHelper
     /// </summary>
     private bool HasValidSize(Window window)
     {
-        var width = window.Rect.right - window.Rect.left;
-        var height = window.Rect.bottom - window.Rect.top;
+        var width = window.Rect.Width();
+        var height = window.Rect.Height();
 
         // Filter out system windows (0x0, 1x1, negative coords)
         // Accept windows with reasonable application size (>100px)
@@ -153,7 +152,7 @@ internal class WindowNeighborHelper
         int distance = Math.Abs(candidateWindow.Rect.right - activeWindow.Rect.left);
 
         // Also check vertical overlap
-        if (!HasVerticalOverlap(activeWindow.Rect, candidateWindow.Rect))
+        if (!WindowGeometry.HasVerticalOverlap(activeWindow.Rect, candidateWindow.Rect))
             return -1;
 
         return distance;
@@ -166,7 +165,7 @@ internal class WindowNeighborHelper
         int distance = Math.Abs(candidateWindow.Rect.left - activeWindow.Rect.right);
 
         // Also check vertical overlap
-        if (!HasVerticalOverlap(activeWindow.Rect, candidateWindow.Rect))
+        if (!WindowGeometry.HasVerticalOverlap(activeWindow.Rect, candidateWindow.Rect))
             return -1;
 
         return distance;
@@ -179,7 +178,7 @@ internal class WindowNeighborHelper
         int distance = Math.Abs(candidateWindow.Rect.bottom - activeWindow.Rect.top);
 
         // Also check horizontal overlap
-        if (!HasHorizontalOverlap(activeWindow.Rect, candidateWindow.Rect))
+        if (!WindowGeometry.HasHorizontalOverlap(activeWindow.Rect, candidateWindow.Rect))
             return -1;
 
         return distance;
@@ -192,60 +191,10 @@ internal class WindowNeighborHelper
         int distance = Math.Abs(candidateWindow.Rect.top - activeWindow.Rect.bottom);
 
         // Also check horizontal overlap
-        if (!HasHorizontalOverlap(activeWindow.Rect, candidateWindow.Rect))
+        if (!WindowGeometry.HasHorizontalOverlap(activeWindow.Rect, candidateWindow.Rect))
             return -1;
 
         return distance;
-    }
-
-    private static bool HasVerticalOverlap(RECT rect1, RECT rect2)
-    {
-        // Check if there's any vertical overlap between two windows
-        return rect1.top < rect2.bottom && rect1.bottom > rect2.top;
-    }
-
-    private static bool HasHorizontalOverlap(RECT rect1, RECT rect2)
-    {
-        // Check if there's any horizontal overlap between two windows
-        return rect1.left < rect2.right && rect1.right > rect2.left;
-    }
-
-    private static int CalculateVerticalOverlap(RECT rect1, RECT rect2)
-    {
-        // Calculate the size of vertical overlap between two windows
-        int overlapTop = Math.Max(rect1.top, rect2.top);
-        int overlapBottom = Math.Min(rect1.bottom, rect2.bottom);
-
-        if (overlapTop >= overlapBottom)
-            return 0; // No overlap
-
-        return overlapBottom - overlapTop;
-    }
-
-    private static int CalculateHorizontalOverlap(RECT rect1, RECT rect2)
-    {
-        // Calculate the size of horizontal overlap between two windows
-        int overlapLeft = Math.Max(rect1.left, rect2.left);
-        int overlapRight = Math.Min(rect1.right, rect2.right);
-
-        if (overlapLeft >= overlapRight)
-            return 0; // No overlap
-
-        return overlapRight - overlapLeft;
-    }
-
-    private static int CalculateRectOverlapArea(RECT rect1, RECT rect2)
-    {
-        // Calculate the area of overlap between two rectangles
-        int overlapLeft = Math.Max(rect1.left, rect2.left);
-        int overlapRight = Math.Min(rect1.right, rect2.right);
-        int overlapTop = Math.Max(rect1.top, rect2.top);
-        int overlapBottom = Math.Min(rect1.bottom, rect2.bottom);
-
-        if (overlapLeft >= overlapRight || overlapTop >= overlapBottom)
-            return 0; // No overlap
-
-        return (overlapRight - overlapLeft) * (overlapBottom - overlapTop);
     }
 
     /// <summary>
@@ -276,7 +225,7 @@ internal class WindowNeighborHelper
                 continue; // This window is behind the candidate, can't obscure it
 
             // Calculate overlap area
-            int overlapArea = CalculateRectOverlapArea(candidateWindow.Rect, window.Rect);
+            int overlapArea = WindowGeometry.CalculateOverlapArea(candidateWindow.Rect, window.Rect);
             if (overlapArea == 0)
                 continue; // No overlap
 
@@ -357,17 +306,15 @@ internal class WindowNeighborHelper
             if (IsObscuredByOtherWindows(window, candidateWindows))
                 continue;
 
-            // Calculate overlap using existing methods
+            // Calculate overlap using WindowGeometry
             int overlapSize = (direction == Direction.Left || direction == Direction.Right)
-                ? CalculateVerticalOverlap(activeWindow.Rect, window.Rect)
-                : CalculateHorizontalOverlap(activeWindow.Rect, window.Rect);
+                ? WindowGeometry.CalculateVerticalOverlap(activeWindow.Rect, window.Rect)
+                : WindowGeometry.CalculateHorizontalOverlap(activeWindow.Rect, window.Rect);
 
             // Require at least 50% overlap of the smaller window's dimension
             int minOverlapRequired = (direction == Direction.Left || direction == Direction.Right)
-                ? Math.Min(activeWindow.Rect.bottom - activeWindow.Rect.top,
-                           window.Rect.bottom - window.Rect.top) / 2
-                : Math.Min(activeWindow.Rect.right - activeWindow.Rect.left,
-                           window.Rect.right - window.Rect.left) / 2;
+                ? Math.Min(activeWindow.Rect.Height(), window.Rect.Height()) / 2
+                : Math.Min(activeWindow.Rect.Width(), window.Rect.Width()) / 2;
 
             if (overlapSize < minOverlapRequired)
                 continue;

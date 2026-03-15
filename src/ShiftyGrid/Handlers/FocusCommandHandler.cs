@@ -113,8 +113,8 @@ internal class FocusCommandHandler : RequestHandler<Direction>
 
             // Check for required overlap based on direction
             bool hasRequiredOverlap = (direction == Direction.Left || direction == Direction.Right)
-                ? CalculateVerticalOverlap(activeWindow.Rect, window.Rect) > 0
-                : CalculateHorizontalOverlap(activeWindow.Rect, window.Rect) > 0;
+                ? WindowGeometry.CalculateVerticalOverlap(activeWindow.Rect, window.Rect) > 0
+                : WindowGeometry.CalculateHorizontalOverlap(activeWindow.Rect, window.Rect) > 0;
 
             if (!hasRequiredOverlap)
                 continue;
@@ -158,31 +158,5 @@ internal class FocusCommandHandler : RequestHandler<Direction>
         return bestMatch;
     }
 
-    /// <summary>
-    /// Calculates vertical overlap between two rectangles (for left/right navigation)
-    /// </summary>
-    private int CalculateVerticalOverlap(RECT rect1, RECT rect2)
-    {
-        int overlapTop = Math.Max(rect1.top, rect2.top);
-        int overlapBottom = Math.Min(rect1.bottom, rect2.bottom);
-
-        if (overlapTop >= overlapBottom)
-            return 0; // No overlap
-
-        return overlapBottom - overlapTop;
-    }
-
-    /// <summary>
-    /// Calculates horizontal overlap between two rectangles (for up/down navigation)
-    /// </summary>
-    private int CalculateHorizontalOverlap(RECT rect1, RECT rect2)
-    {
-        int overlapLeft = Math.Max(rect1.left, rect2.left);
-        int overlapRight = Math.Min(rect1.right, rect2.right);
-
-        if (overlapLeft >= overlapRight)
-            return 0; // No overlap
-
-        return overlapRight - overlapLeft;
-    }
+    // Note: Overlap calculation methods moved to WindowGeometry class
 }

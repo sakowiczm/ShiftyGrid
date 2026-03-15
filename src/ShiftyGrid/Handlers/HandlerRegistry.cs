@@ -17,6 +17,8 @@ internal class HandlerRegistry : IRequestHandler
 
         // Create shared services
         var windowMatcher = new WindowMatcher(config);
+        var windowValidator = new WindowValidator(windowMatcher);
+        var monitorManager = new MonitorManager();
         var windowNeighborHelper = new WindowNeighborHelper(windowMatcher, config.General.ProximityThreshold);
         var windowSelector = new WindowSelector(windowNeighborHelper, windowMatcher);
         int gap = config.General.Gap;
