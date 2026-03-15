@@ -1,9 +1,11 @@
 general:
-  gap: 4
+  gap: 2
   proximity_threshold: 20
   auto_organize: true
   log_level: info
+
 keyboard:
+
   shortcuts:
     - bindings:
         - ctrl+alt+left
@@ -43,9 +45,11 @@ keyboard:
         - ctrl+alt+return
       command: promote --grid 12x12 --coordinates 1,0,11,12
     - bindings:
-        - ctrl+shift+o
+        - ctrl+alt+o
       command: organize
+
   modes:
+
     - id: move_mode
       name: Move Mode
       activation:
@@ -91,6 +95,7 @@ keyboard:
         - bindings:
             - l
           command: move --grid 12x12 --coordinates 6,6,12,12
+
     - id: resize_mode
       name: Resize Mode
       activation:
@@ -113,6 +118,7 @@ keyboard:
             - down
           command: resize down
           exit_mode: false
+
 organize:
   rules:
     - match:
@@ -130,7 +136,37 @@ organize:
     - match:
         process_name: Code
       command: move --grid 12x12 --coordinates 0,0,6,12
+    - match:
+        process_name: Brave
+      command: move --grid 12x12 --coordinates 6,0,12,12
+    - match:
+        process_name: devenv
+      command: move --grid 12x12 --coordinates 6,0,12,12
+    - match: 
+        process_name: Obsidian
+      command: move --grid 12x12 --coordinates 6,0,12,12
+    - match:
+        process_name: dobulecmd
+        class_name: TTOTAL_CMD
+      command: move --grid 12x12 --coordinates 6,0,12,12
+        
 ignore:
   rules:
     - match:
         class_name: ClunkyBordersOverlayClass
+    - match:
+        class_name: EdgeUiInputTopWndClass
+    - match:
+        class_name: Shell_SecondaryTrayWnd
+    - match:
+        class_name: Shell_TrayWnd
+    - match:
+        class_name: ThumbnailDeviceHelperWnd
+    - match:
+        class_name: Progman
+        process_name: Program Manager
+    - match:
+        class_name: Windows.UI.Core.CoreWindow
+        process_name: SystemSettings.exe
+    - match:
+        class_name: ApplicationFrameWindow
