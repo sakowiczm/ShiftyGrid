@@ -113,9 +113,6 @@ public static class StartCommand
             return;
         }
 
-        // Apply general settings
-        _autoOrganizeEnabled = config.General.AutoOrganize;
-
         Console.WriteLine("ShiftyGrid server started. Use 'ShiftyGrid.exe exit' to stop.");
         Logger.Info("Starting IPC server...");
 

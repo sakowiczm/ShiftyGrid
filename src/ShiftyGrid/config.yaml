@@ -1,8 +1,11 @@
 general:
   gap: 2
   proximity_threshold: 20
-  auto_organize: true
   log_level: info
+
+startup:
+  commands:
+    - "organize --all"
 
 keyboard:
 

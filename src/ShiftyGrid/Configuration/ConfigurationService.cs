@@ -154,6 +154,7 @@ public static class ConfigurationService
             }
         }
 
+        ValidateStartupCommands(config);
         ParseOrganizeCommands(config);
     }
 
@@ -201,6 +202,31 @@ public static class ConfigurationService
             {
                 throw new ConfigurationException($"Invalid regex pattern in {fieldName}: '{regexPattern}' - {ex.Message}", ex);
             }
+        }
+    }
+
+    private static void ValidateStartupCommands(ShiftyGridConfig config)
+    {
+        var disallowedCommands = new[] { "exit", "start", "reload" };
+
+        foreach (var commandString in config.Startup.Commands)
+        {
+            if (string.IsNullOrWhiteSpace(commandString))
+            {
+                throw new ConfigurationException("Startup command cannot be empty");
+            }
+
+            var commandName = commandString.Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
+            if (commandName != null && disallowedCommands.Contains(commandName.ToLowerInvariant()))
+            {
+                throw new ConfigurationException(
+                    $"Command '{commandName}' is not allowed in startup commands");
+            }
+        }
+
+        if (config.Startup.Commands.Count > 0)
+        {
+            Logger.Info($"Configured {config.Startup.Commands.Count} startup command(s)");
         }
     }
 
@@ -335,8 +361,11 @@ public static class ConfigurationService
             {
                 Gap = 4,
                 ProximityThreshold = 20,
-                AutoOrganize = true,
                 LogLevel = "info"
+            },
+            Startup = new StartupSettings
+            {
+                Commands = new List<string> { "organize --all" }
             },
             Keyboard = new KeyboardSettings
             {

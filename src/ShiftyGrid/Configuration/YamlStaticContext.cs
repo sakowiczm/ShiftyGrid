@@ -17,6 +17,7 @@ namespace ShiftyGrid.Configuration;
 [YamlSerializable(typeof(IgnoreSettings))]
 [YamlSerializable(typeof(IgnoreRule))]
 [YamlSerializable(typeof(WindowMatchConfig))]
+[YamlSerializable(typeof(StartupSettings))]
 public partial class YamlStaticContext
 {
 }

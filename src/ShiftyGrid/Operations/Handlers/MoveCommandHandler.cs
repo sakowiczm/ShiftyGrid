@@ -19,8 +19,6 @@ internal class MoveCommandHandler : RequestHandler<Coordinates>
     {
         try
         {
-            // todo: Data validation?
-
             var success = WindowPositioner.ChangePosition(data, _gap);
             return success
                 ? Response.CreateSuccess("Window moved")

@@ -11,6 +11,9 @@ public class ShiftyGridConfig
     [YamlMember(Alias = "general")]
     public GeneralSettings General { get; set; } = new();
 
+    [YamlMember(Alias = "startup")]
+    public StartupSettings Startup { get; set; } = new();
+
     [YamlMember(Alias = "keyboard")]
     public KeyboardSettings Keyboard { get; set; } = new();
 
@@ -32,11 +35,17 @@ public class GeneralSettings
     [YamlMember(Alias = "proximity_threshold")]
     public int ProximityThreshold { get; set; } = 20;
 
-    [YamlMember(Alias = "auto_organize")]
-    public bool AutoOrganize { get; set; } = true;
-
     [YamlMember(Alias = "log_level")]
     public string LogLevel { get; set; } = "info";
+}
+
+/// <summary>
+/// Startup commands configuration
+/// </summary>
+public class StartupSettings
+{
+    [YamlMember(Alias = "commands")]
+    public List<string> Commands { get; set; } = new();
 }
 
 /// <summary>
