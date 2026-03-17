@@ -9,6 +9,13 @@ namespace ShiftyGrid.Windows;
 
 public class WindowPositioner
 {
+    internal readonly record struct EdgeContext(
+        bool LeftEdge,    // true if left edge at screen boundary
+        bool RightEdge,   // true if right edge at screen boundary
+        bool TopEdge,     // true if top edge at screen boundary
+        bool BottomEdge   // true if bottom edge at screen boundary
+    );
+
     /// <summary>
     /// Positions the foreground window to a specified coordinates
     /// </summary>
@@ -53,6 +60,48 @@ public class WindowPositioner
         if (endY - startY < 1) endY = startY + 2;
 
         return new Coordinates(grid, startX, startY, endX, endY);
+    }
+
+    private static EdgeContext DetermineEdgeContext(Window window, Coordinates coordinates)
+    {
+        const int EDGE_TOLERANCE = 2; // pixels
+
+        var monitor = window.MonitorRect;
+        var grid = coordinates.Grid;
+        var (startX, startY, endX, endY) = coordinates;
+
+        // Calculate target visual bounds
+        var monitorWidth = monitor.Width();
+        var monitorHeight = monitor.Height();
+        var visualLeft = monitor.left + (monitorWidth * startX / grid.Columns);
+        var visualTop = monitor.top + (monitorHeight * startY / grid.Rows);
+        var visualRight = monitor.left + (monitorWidth * endX / grid.Columns);
+        var visualBottom = monitor.top + (monitorHeight * endY / grid.Rows);
+
+        return new EdgeContext(
+            LeftEdge: Math.Abs(visualLeft - monitor.left) <= EDGE_TOLERANCE,
+            RightEdge: Math.Abs(visualRight - monitor.right) <= EDGE_TOLERANCE,
+            TopEdge: Math.Abs(visualTop - monitor.top) <= EDGE_TOLERANCE,
+            BottomEdge: Math.Abs(visualBottom - monitor.bottom) <= EDGE_TOLERANCE
+        );
+    }
+
+    private static (int x, int y, int width, int height) ApplyContextAwareGap(
+        int visualX, int visualY, int visualWidth, int visualHeight,
+        EdgeContext context, int gap)
+    {
+        // Calculate gap for each edge based on context
+        int leftGap = context.LeftEdge ? gap : gap / 2;
+        int rightGap = context.RightEdge ? gap : gap / 2;
+        int topGap = context.TopEdge ? gap : gap / 2;
+        int bottomGap = context.BottomEdge ? gap : gap / 2;
+
+        return (
+            x: visualX + leftGap,
+            y: visualY + topGap,
+            width: visualWidth - leftGap - rightGap,
+            height: visualHeight - topGap - bottomGap
+        );
     }
 
     internal static unsafe bool ChangePosition(Window window, Coordinates coordinates, int gap)
@@ -105,17 +154,17 @@ public class WindowPositioner
         var visualWidth = monitorWidth * (endX - startX) / coordinates.Grid.Columns;
         var visualHeight = monitorHeight * (endY - startY) / coordinates.Grid.Rows;
 
-        // Apply border gap
-        var gapX = visualX + gap;
-        var gapY = visualY + gap;
-        var gapWidth = visualWidth - (gap * 2);
-        var gapHeight = visualHeight - (gap * 2);
+        // Determine edge context and apply context-aware gap
+        var edgeContext = DetermineEdgeContext(window, coordinates);
+        var (gapX, gapY, gapWidth, gapHeight) = ApplyContextAwareGap(
+            visualX, visualY, visualWidth, visualHeight, edgeContext, gap);
 
         // Adjust for invisible borders to achieve visual alignment
         var (x, y, width, height) = WindowBorderService.ApplyOffsets(gapX, gapY, gapWidth, gapHeight, offsets);
 
         Logger.Debug($"Visual position: ({visualX}, {visualY}) size: {visualWidth}x{visualHeight}");
-        Logger.Debug($"With {gap}px gap: ({gapX}, {gapY}) size: {gapWidth}x{gapHeight}");
+        Logger.Debug($"Edge context: L={edgeContext.LeftEdge} R={edgeContext.RightEdge} T={edgeContext.TopEdge} B={edgeContext.BottomEdge}");
+        Logger.Debug($"With context-aware gap: ({gapX}, {gapY}) size: {gapWidth}x{gapHeight}");
         Logger.Debug($"Final adjusted position: ({x}, {y}) size: {width}x{height}");
 
         var result = PInvoke.SetWindowPos(
