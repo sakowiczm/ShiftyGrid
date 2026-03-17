@@ -90,7 +90,7 @@ public class Response
 [JsonSerializable(typeof(Direction))]
 [JsonSerializable(typeof(WindowResize))]
 [JsonSerializable(typeof(ArrangeOptions))]
-
+[JsonSerializable(typeof(OrganizeOptions))]
 internal partial class IpcJsonContext : JsonSerializerContext
 {
 

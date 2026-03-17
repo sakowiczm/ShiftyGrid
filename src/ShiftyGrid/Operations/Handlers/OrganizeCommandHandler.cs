@@ -1,6 +1,7 @@
 using ShiftyGrid.Common;
 using ShiftyGrid.Server;
 using ShiftyGrid.Windows;
+using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
 using Windows.Win32;
 using Windows.Win32.Foundation;
@@ -8,7 +9,11 @@ using Windows.Win32.Graphics.Gdi;
 
 namespace ShiftyGrid.Operations.Handlers;
 
-internal class OrganizeCommandHandler : RequestHandler<string>
+public record OrganizeOptions(
+    [property: JsonPropertyName("all")] bool All
+);
+
+internal class OrganizeCommandHandler : RequestHandler<OrganizeOptions>
 {
     private readonly WindowMatcher _windowMatcher;
     private readonly WindowNavigationService _WindowNavigationService;
@@ -21,11 +26,11 @@ internal class OrganizeCommandHandler : RequestHandler<string>
         _gap = gap;
     }
 
-    protected override Response Handle(string data)
+    protected override Response Handle(OrganizeOptions data)
     {
         try
         {
-            var result = Execute();
+            var result = Execute(data.All);
             return result.Success
                 ? Response.CreateSuccess(result.Message)
                 : Response.CreateError(result.Message);
@@ -37,38 +42,54 @@ internal class OrganizeCommandHandler : RequestHandler<string>
         }
     }
 
-    protected override JsonTypeInfo<string> GetJsonTypeInfo()
+    protected override JsonTypeInfo<OrganizeOptions> GetJsonTypeInfo()
     {
-        return IpcJsonContext.Default.String;
+        return IpcJsonContext.Default.OrganizeOptions;
     }
 
-    private (bool Success, string Message) Execute()
+    private (bool Success, string Message) Execute(bool all)
     {
-        Logger.Info("OrganizeCommand: Starting window organization");
+        Logger.Info($"OrganizeCommand: Starting window organization");
 
-        // Store foreground window to restore later
+        // todo: need some thinking - maybe?
+        //  - organize - foreground window only - does not matter what monitor
+        //  - organize --all - all monitors? or add --monitor to organize all windows on given monitor?
+
         var foregroundHandle = PInvoke.GetForegroundWindow();
 
-        // Get current monitor (from foreground window or primary)
-        HMONITOR currentMonitor;
-        if (!foregroundHandle.IsNull)
+        // Get windows based on mode
+        List<Window> windows;
+        if (all)
         {
-            currentMonitor = PInvoke.MonitorFromWindow(foregroundHandle, MONITOR_FROM_FLAGS.MONITOR_DEFAULTTONEAREST);
+            // Process all windows across all monitors
+            // windows = _WindowNavigationService.GetAllWindows();
+
+            // Get current monitor (from foreground window or primary)
+            HMONITOR currentMonitor;
+            if (!foregroundHandle.IsNull)
+            {
+                currentMonitor = PInvoke.MonitorFromWindow(foregroundHandle, MONITOR_FROM_FLAGS.MONITOR_DEFAULTTONEAREST);
+            }
+            else
+            {
+                currentMonitor = GetPrimaryMonitor();
+            }
+
+            if (currentMonitor == IntPtr.Zero)
+            {
+                Logger.Warning("OrganizeCommand: Could not determine current monitor");
+                return (false, "Could not determine current monitor");
+            }
+
+            // Enumerate windows on current monitor
+            windows = _WindowNavigationService.GetWindowsOnMonitor(currentMonitor);
         }
         else
         {
-            currentMonitor = GetPrimaryMonitor();
+            windows = Window.GetForeground() is Window fgWindow ? [fgWindow] : [];
         }
 
-        if (currentMonitor == IntPtr.Zero)
-        {
-            Logger.Warning("OrganizeCommand: Could not determine current monitor");
-            return (false, "Could not determine current monitor");
-        }
-
-        // Enumerate windows on current monitor
-        var windows = _WindowNavigationService.GetWindowsOnMonitor(currentMonitor);
-        Logger.Info($"OrganizeCommand: Found {windows.Count} windows on monitor");
+        Logger.Info($"OrganizeCommand: Found {windows.Count} windows across all monitors");
 
         int successCount = 0;
         int failedCount = 0;

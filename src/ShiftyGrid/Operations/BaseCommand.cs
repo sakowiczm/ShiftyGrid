@@ -80,6 +80,8 @@ public abstract class BaseCommand
             return (JsonTypeInfo<T>)(object)IpcJsonContext.Default.Direction;
         if (typeof(T) == typeof(Handlers.WindowResize))
             return (JsonTypeInfo<T>)(object)IpcJsonContext.Default.WindowResize;
+        if (typeof(T) == typeof(Handlers.OrganizeOptions))
+            return (JsonTypeInfo<T>)(object)IpcJsonContext.Default.OrganizeOptions;
 
         throw new NotSupportedException($"Type {typeof(T).Name} is not registered in IpcJsonContext");
     }

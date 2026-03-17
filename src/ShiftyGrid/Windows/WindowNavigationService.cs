@@ -102,6 +102,8 @@ internal class WindowNavigationService
                window.Rect.left >= -10 && window.Rect.top >= -10;  // Allow slight negative for borders
     }
 
+    // todo: unify methods to get windows
+
     /// <summary>
     /// Gets all windows on the specified monitor in Z-order
     /// </summary>
@@ -139,6 +141,59 @@ internal class WindowNavigationService
         }, 0);
 
         return windows;
+    }
+
+    /// <summary>
+    /// Gets all windows across all monitors with per-monitor Z-order tracking
+    /// </summary>
+    public List<Window> GetAllWindows()
+    {
+        // Group windows by monitor with per-monitor Z-order tracking
+        var windowsByMonitor = new Dictionary<HMONITOR, List<Window>>();
+        var monitorZOrders = new Dictionary<HMONITOR, int>();
+
+        PInvoke.EnumWindows((hWnd, lParam) =>
+        {
+            if (PInvoke.IsWindowVisible(hWnd))
+            {
+                // Get monitor BEFORE creating Window object (efficiency + consistency)
+                HMONITOR windowMonitor = PInvoke.MonitorFromWindow(hWnd,
+                    MONITOR_FROM_FLAGS.MONITOR_DEFAULTTONEAREST);
+
+                // Initialize Z-order tracking for this monitor if first window
+                if (!monitorZOrders.ContainsKey(windowMonitor))
+                {
+                    monitorZOrders[windowMonitor] = 0;
+                    windowsByMonitor[windowMonitor] = new List<Window>();
+                }
+
+                // Create Window object with per-monitor Z-order
+                var windowInfo = Window.FromHandle(hWnd, monitorZOrders[windowMonitor]);
+
+                // Include windows with text OR valid size (for elevated windows)
+                if (windowInfo != null &&
+                    (!string.IsNullOrWhiteSpace(windowInfo.Text) || HasValidSize(windowInfo)))
+                {
+                    windowsByMonitor[windowMonitor].Add(windowInfo);
+
+                    // Only increment Z-order for non-ignored windows (same logic as GetWindowsOnMonitor)
+                    if (!_windowMatcher.ShouldIgnore(windowInfo))
+                    {
+                        monitorZOrders[windowMonitor]++;
+                    }
+                }
+            }
+            return true;
+        }, 0);
+
+        // Flatten to single list - order by monitor handle hash for consistency
+        var allWindows = new List<Window>();
+        foreach (var monitor in windowsByMonitor.Keys.OrderBy(m => m.GetHashCode()))
+        {
+            allWindows.AddRange(windowsByMonitor[monitor]);
+        }
+
+        return allWindows;
     }
 
     private int CalculateLeftProximity(Window activeWindow, Window candidateWindow)
