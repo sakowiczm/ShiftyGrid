@@ -1,3 +1,4 @@
+using ShiftyGrid.Operations.Commands;
 using ShiftyGrid.Server;
 
 namespace ShiftyGrid.Operations.Handlers;
@@ -8,10 +9,18 @@ internal class StatusCommandHandler : IRequestHandler
     {
         var uptime = Environment.TickCount64.ToString();
 
-        return Response.CreateSuccess("Server is running", new Dictionary<string, string>
+        // todo: output to console
+
+        var data = new Dictionary<string, string>
         {
             ["Status"] = "Active",
-            ["Uptime"] = uptime
-        });
+            ["Uptime"] = uptime,
+            ["ConfigPath"] = StartCommand.ConfigPath ?? "",
+            ["LogPath"] = StartCommand.LogPath ?? "",
+            ["LogLevel"] = StartCommand.LogLevel,
+            ["ProcessId"] = Environment.ProcessId.ToString()
+        };
+
+        return Response.CreateSuccess("Server is running", data);
     }
 }

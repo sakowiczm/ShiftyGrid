@@ -45,6 +45,7 @@ internal class Program
 
         rootCommand.AddCommand(StartCommand.Create());
         rootCommand.AddCommand(new ExitCommand().Create());
+        rootCommand.AddCommand(new ReloadCommand().Create());
         rootCommand.AddCommand(new StatusCommand().Create());
         rootCommand.AddCommand(new AboutCommand().Create());
 

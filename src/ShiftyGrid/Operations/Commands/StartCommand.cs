@@ -54,6 +54,11 @@ public static class StartCommand
     private static bool _autoOrganizeEnabled = true;
 
 
+    // Public properties to expose startup parameters for reload
+    public static string? ConfigPath { get; private set; }
+    public static string? LogPath { get; private set; }
+    public static string LogLevel { get; private set; } = "info";
+
     /// <summary>
     /// Starts IPC server instance with integrated keyboard engine
     /// </summary>
@@ -62,7 +67,23 @@ public static class StartCommand
         // Capture the main thread ID for exit signaling
         _mainThreadId = PInvoke.GetCurrentThreadId();
 
-        Logger.Initialize(logPath, Logger.GetLogLevel(logLevel));
+        // Store parameters for reload
+        ConfigPath = configPath;
+        LogPath = logPath;
+        LogLevel = logLevel;
+
+        // Check for single instance
+        using var instanceManager = new InstanceManager();
+        if (!instanceManager.IsSingleInstance())
+        {
+            Console.WriteLine("Server is already running.");
+            Logger.Warning("Server is already running.");
+            Environment.Exit(1);
+        }
+
+        _shouldExit = false;
+
+        Logger.Initialize(LogPath, Logger.GetLogLevel(LogLevel));
 
         Logger.Info("ShiftyGrid Starting");
         Console.WriteLine("ShiftyGrid Starting");
@@ -73,8 +94,8 @@ public static class StartCommand
         ShiftyGridConfig config;
         try
         {
-            config = ConfigurationService.LoadConfiguration(configPath);
-            Console.WriteLine($"Configuration loaded from {ConfigurationService.ResolveConfigPath(configPath)}");
+            config = ConfigurationService.LoadConfiguration(ConfigPath);
+            Console.WriteLine($"Configuration loaded from {ConfigurationService.ResolveConfigPath(ConfigPath)}");
         }
         catch (ConfigurationException ex)
         {
@@ -94,16 +115,6 @@ public static class StartCommand
 
         // Apply general settings
         _autoOrganizeEnabled = config.General.AutoOrganize;
-        Logger.Info($"Settings: GAP={config.General.Gap}px, PROXIMITY_THRESHOLD={config.General.ProximityThreshold}px, AutoOrganize={_autoOrganizeEnabled}");
-
-        using var instanceManager = new InstanceManager();
-
-        if (!instanceManager.IsSingleInstance())
-        {
-            Console.WriteLine("Server is already running.");
-            Logger.Warning("Server is already running.");
-            Environment.Exit(1);
-        }
 
         Console.WriteLine("ShiftyGrid server started. Use 'ShiftyGrid.exe exit' to stop.");
         Logger.Info("Starting IPC server...");

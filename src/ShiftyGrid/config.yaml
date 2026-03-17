@@ -149,6 +149,13 @@ organize:
         process_name: dobulecmd
         class_name: TTOTAL_CMD
       command: move --grid 12x12 --coordinates 6,0,12,12
+    - match:
+        title_pattern: regex:^Outlook \(PWA\)
+      command: move --grid 12x12 --coordinates 0,0,6,12
+    - match:
+        process_name: msedge
+        class_name: Chrome_WidgetWin_1
+      command: move --grid 12x12 --coordinates 6,0,12,12
         
 ignore:
   rules:

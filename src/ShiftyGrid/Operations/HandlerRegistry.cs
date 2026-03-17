@@ -2,7 +2,7 @@ using ShiftyGrid.Configuration;
 using ShiftyGrid.Server;
 using ShiftyGrid.Windows;
 using ShiftyGrid.Operations.Commands;
-using ShiftyGrid.Infrastructure.Display;
+//using ShiftyGrid.Infrastructure.Display;
 using ShiftyGrid.Common;
 
 namespace ShiftyGrid.Operations.Handlers;
@@ -18,8 +18,8 @@ internal class HandlerRegistry : IRequestHandler
 
         // Create shared services
         var windowMatcher = new WindowMatcher(config);
-        var windowValidator = new WindowValidator(windowMatcher);
-        var monitorManager = new MonitorManager();
+        //var windowValidator = new WindowValidator(windowMatcher);
+        //var monitorManager = new MonitorManager();
         var WindowNavigationService = new WindowNavigationService(windowMatcher, config.General.ProximityThreshold);
         var windowSelector = new WindowSelector(WindowNavigationService, windowMatcher);
         int gap = config.General.Gap;
