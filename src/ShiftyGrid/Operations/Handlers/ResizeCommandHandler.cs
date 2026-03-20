@@ -6,11 +6,6 @@ using ShiftyGrid.Common;
 
 namespace ShiftyGrid.Operations.Handlers;
 
-// todo: issue when initally window is samller than minimal size
-// todo: resize issues up or down - single window
-// todo: pass minimal size to ConvertWindowToGridPosition
-// todo: remove WindowResize as it's no longer necessary
-
 internal enum WindowResize
 {
     ExpandLeft,
@@ -21,6 +16,10 @@ internal enum WindowResize
     ExpandDown,
     ShrinkUp,
     ShrinkDown,
+    OuterLeft,
+    OuterRight,
+    OuterUp,
+    OuterDown,
 }
 
 internal enum ResizeOperation
@@ -119,11 +118,15 @@ internal class ResizeCommandHandler : RequestHandler<WindowResize>
             WindowResize.ExpandDown => ResizeVertical(activeWindow, Direction.Down, ResizeOperation.Expand),
             WindowResize.ShrinkUp => ResizeVertical(activeWindow, Direction.Up, ResizeOperation.Shrink),
             WindowResize.ShrinkDown => ResizeVertical(activeWindow, Direction.Down, ResizeOperation.Shrink),
+            WindowResize.OuterLeft => ResizeHorizontal(activeWindow, Direction.Left, ResizeOperation.Expand, outer: true),
+            WindowResize.OuterRight => ResizeHorizontal(activeWindow, Direction.Right, ResizeOperation.Expand, outer: true),
+            WindowResize.OuterUp => ResizeVertical(activeWindow, Direction.Up, ResizeOperation.Expand, outer: true),
+            WindowResize.OuterDown => ResizeVertical(activeWindow, Direction.Down, ResizeOperation.Expand, outer: true),
             _ => false
         };
     }
 
-    private bool ResizeHorizontal(Window focused, Direction direction, ResizeOperation operation)
+    private bool ResizeHorizontal(Window focused, Direction direction, ResizeOperation operation, bool outer = false)
     {
         // 1. Convert to grid coordinates
         var currentPos = WindowPositioner.ConvertWindowToGridPosition(focused, DEFAULT_GRID);
@@ -138,7 +141,7 @@ internal class ResizeCommandHandler : RequestHandler<WindowResize>
         var neighbors = GetHorizontalNeighbors(focused);
 
         // 4. Calculate edge movement
-        var movement = CalculateHorizontalMovement(currentPos, direction, operation, neighbors);
+        var movement = CalculateHorizontalMovement(currentPos, direction, operation, neighbors, outer);
 
         Logger.Debug($"  Moving {movement.MovingEdgeName} edge");
 
@@ -167,7 +170,7 @@ internal class ResizeCommandHandler : RequestHandler<WindowResize>
     }
 
     private EdgeMovement CalculateHorizontalMovement(Coordinates currentPos, Direction direction,
-        ResizeOperation operation, HorizontalNeighbors neighbors)
+        ResizeOperation operation, HorizontalNeighbors neighbors, bool outer = false)
     {
         bool isLeftmost = neighbors.Left == null && neighbors.Right != null;
         bool movingRightEdge;
@@ -193,6 +196,9 @@ internal class ResizeCommandHandler : RequestHandler<WindowResize>
             delta = direction == Direction.Right ? 1 : -1;
         }
 
+        // Outer modifier flips to the opposite border
+        if (outer) movingRightEdge = !movingRightEdge;
+
         // Calculate new position for focused window
         Coordinates focusedNewPos = movingRightEdge
             ? new Coordinates(DEFAULT_GRID, currentPos.StartX, currentPos.StartY, currentPos.EndX + delta, currentPos.EndY)
@@ -215,7 +221,7 @@ internal class ResizeCommandHandler : RequestHandler<WindowResize>
         return new EdgeMovement(focusedNewPos, neighborNewPos, affectedNeighbor, edgeName);
     }
 
-    private bool ResizeVertical(Window focused, Direction direction, ResizeOperation operation)
+    private bool ResizeVertical(Window focused, Direction direction, ResizeOperation operation, bool outer = false)
     {
         // 1. Convert to grid coordinates
         var currentPos = WindowPositioner.ConvertWindowToGridPosition(focused, DEFAULT_GRID);
@@ -230,7 +236,7 @@ internal class ResizeCommandHandler : RequestHandler<WindowResize>
         var neighbors = GetVerticalNeighbors(focused);
 
         // 4. Calculate edge movement
-        var movement = CalculateVerticalMovement(currentPos, direction, operation, neighbors);
+        var movement = CalculateVerticalMovement(currentPos, direction, operation, neighbors, outer);
 
         Logger.Debug($"  Moving {movement.MovingEdgeName} edge");
 
@@ -262,7 +268,7 @@ internal class ResizeCommandHandler : RequestHandler<WindowResize>
     /// Calculates the edge movement for vertical resize operations based on window position and operation type.
     /// </summary>
     private EdgeMovement CalculateVerticalMovement(Coordinates currentPos, Direction direction,
-        ResizeOperation operation, VerticalNeighbors neighbors)
+        ResizeOperation operation, VerticalNeighbors neighbors, bool outer = false)
     {
         bool isTopmost = neighbors.Top == null && neighbors.Bottom != null;
         bool movingBottomEdge;
@@ -287,6 +293,9 @@ internal class ResizeCommandHandler : RequestHandler<WindowResize>
             movingBottomEdge = !isTopmost;
             delta = direction == Direction.Down ? 1 : -1;
         }
+
+        // Outer modifier flips to the opposite border
+        if (outer) movingBottomEdge = !movingBottomEdge;
 
         // Calculate new position for focused window
         Coordinates focusedNewPos = movingBottomEdge

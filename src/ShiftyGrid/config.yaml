@@ -107,19 +107,35 @@ keyboard:
       shortcuts:
         - bindings:
             - left
-          command: resize left
+          command: resize --direction left
           exit_mode: false
         - bindings:
             - right
-          command: resize right
+          command: resize --direction right
           exit_mode: false
         - bindings:
             - up
-          command: resize up
+          command: resize --direction up
           exit_mode: false
         - bindings:
             - down
-          command: resize down
+          command: resize --direction down
+          exit_mode: false
+        - bindings:
+            - shift+left
+          command: resize --direction left --outer
+          exit_mode: false
+        - bindings:
+            - shift+right
+          command: resize --direction right --outer
+          exit_mode: false
+        - bindings:
+            - shift+up
+          command: resize --direction up --outer
+          exit_mode: false
+        - bindings:
+            - shift+down
+          command: resize --direction down --outer
           exit_mode: false
 
 organize:

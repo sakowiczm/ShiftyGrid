@@ -12,31 +12,53 @@ internal class ResizeCommand : BaseCommand
     {
         var resizeCommand = new Command(Name, "Resize the foreground window");
 
-        var directionArgument = new Argument<Direction>(
-            name: "direction",
+        var directionOption = new Option<Direction>(
+            name: "--direction",
             description: "Direction: Left, Right, Up, Down"
+        )
+        { IsRequired = true };
+
+        var outerOption = new Option<bool>(
+            name: "--outer",
+            description: "Move the outer border instead of the inner border"
         );
 
-        resizeCommand.AddArgument(directionArgument);
+        resizeCommand.AddOption(directionOption);
+        resizeCommand.AddOption(outerOption);
         resizeCommand.SetHandler(
-            async (direction) => await Execute(direction),
-            directionArgument
+            async (direction, outer) => await Execute(direction, outer),
+            directionOption, outerOption
         );
 
         return resizeCommand;
     }
 
-    public async Task Execute(Direction direction)
+    public async Task Execute(Direction direction, bool outer = false)
     {
-        // Map Direction to WindowResize (defaulting to Expand operation)
-        var windowResize = direction switch
+        WindowResize windowResize;
+
+        if (outer)
         {
-            Direction.Left => WindowResize.ExpandLeft,
-            Direction.Right => WindowResize.ExpandRight,
-            Direction.Up => WindowResize.ExpandUp,
-            Direction.Down => WindowResize.ExpandDown,
-            _ => throw new ArgumentException($"Invalid direction: {direction}")
-        };
+            windowResize = direction switch
+            {
+                Direction.Left => WindowResize.OuterLeft,
+                Direction.Right => WindowResize.OuterRight,
+                Direction.Up => WindowResize.OuterUp,
+                Direction.Down => WindowResize.OuterDown,
+                _ => throw new ArgumentException($"Invalid direction: {direction}")
+            };
+        }
+        else
+        {
+            windowResize = direction switch
+            {
+                Direction.Left => WindowResize.ExpandLeft,
+                Direction.Right => WindowResize.ExpandRight,
+                Direction.Up => WindowResize.ExpandUp,
+                Direction.Down => WindowResize.ExpandDown,
+                _ => throw new ArgumentException($"Invalid direction: {direction}")
+            };
+        }
 
         await SendRequestAsync($"Sending {Name} command to running instance...", Name, windowResize);
     }

@@ -427,7 +427,11 @@ public static class ConfigurationService
                             new() { Bindings = new List<string> { "left" }, Command = "resize left", ExitMode = false },
                             new() { Bindings = new List<string> { "right" }, Command = "resize right", ExitMode = false },
                             new() { Bindings = new List<string> { "up" }, Command = "resize up", ExitMode = false },
-                            new() { Bindings = new List<string> { "down" }, Command = "resize down", ExitMode = false }
+                            new() { Bindings = new List<string> { "down" }, Command = "resize down", ExitMode = false },
+                            new() { Bindings = new List<string> { "shift+left" }, Command = "resize left --outer", ExitMode = false },
+                            new() { Bindings = new List<string> { "shift+right" }, Command = "resize right --outer", ExitMode = false },
+                            new() { Bindings = new List<string> { "shift+up" }, Command = "resize up --outer", ExitMode = false },
+                            new() { Bindings = new List<string> { "shift+down" }, Command = "resize down --outer", ExitMode = false }
                         }
                     }
                 }
