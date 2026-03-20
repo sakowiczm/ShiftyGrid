@@ -37,6 +37,9 @@ public class GeneralSettings
 
     [YamlMember(Alias = "log_level")]
     public string LogLevel { get; set; } = "info";
+
+    [YamlMember(Alias = "auto_organize")]
+    public bool AutoOrganize { get; set; } = true;
 }
 
 /// <summary>

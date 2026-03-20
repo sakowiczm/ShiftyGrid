@@ -10,8 +10,7 @@ namespace ShiftyGrid.Windows;
 /// </summary>
 internal class WindowLifecycleMonitor : IDisposable
 {
-    private readonly WindowMatcher _windowMatcher;
-    private readonly int _gap;
+    private readonly WindowOrganizer _organizer;
 
     /// <summary>
     /// State tracking for window organize attempts with progressive retry logic.
@@ -49,10 +48,9 @@ internal class WindowLifecycleMonitor : IDisposable
 
     private Timer? _cleanupTimer;
 
-    public WindowLifecycleMonitor(WindowMatcher windowMatcher, int gap)
+    public WindowLifecycleMonitor(WindowOrganizer organizer)
     {
-        _windowMatcher = windowMatcher ?? throw new ArgumentNullException(nameof(windowMatcher));
-        _gap = gap;
+        _organizer = organizer ?? throw new ArgumentNullException(nameof(organizer));
     }
 
     /// <summary>
@@ -234,7 +232,7 @@ internal class WindowLifecycleMonitor : IDisposable
         }
 
         // Try to organize
-        bool success = TryOrganizeWindow(window);
+        bool success = _organizer.TryOrganize(window);
 
         if (success)
         {
@@ -254,46 +252,6 @@ internal class WindowLifecycleMonitor : IDisposable
         {
             Logger.Debug($"AutoOrganize: TryOrganizeWindow returned false for '{window.Text}'");
             HandleFailedAttempt(hwnd, attempt, window);
-        }
-    }
-
-    /// <summary>
-    /// Attempts to organize a window if it matches any organize rule.
-    /// Returns true if window was organized, false if no match or failed.
-    /// </summary>
-    public bool TryOrganizeWindow(Window window)
-    {
-        // Skip ignored windows
-        if (_windowMatcher.ShouldIgnore(window))
-            return false;
-
-        // Skip minimized windows
-        if (window.State == WindowState.Minimized)
-            return false;
-
-        // Skip child windows, dialogs, and popups - only organize root windows
-        if (!window.IsParent)
-            return false;
-
-        // Find matching rule
-        var matchingRule = _windowMatcher.FindOrganizeRule(window);
-        if (matchingRule == null || matchingRule.ParsedCoordinates == null)
-        {
-            Logger.Debug($"AutoOrganize: No match for '{window.Text}'");
-            return false;
-        }
-
-        Logger.Info($"AutoOrganize: Matched '{window.Text}' -> {matchingRule.ParsedCoordinates}");
-
-        // Apply coordinates
-        try
-        {
-            return WindowPositioner.ChangePosition(window, matchingRule.ParsedCoordinates.Value, _gap);
-        }
-        catch (Exception ex)
-        {
-            Logger.Error($"AutoOrganize: Error positioning '{window.Text}'", ex);
-            return false;
         }
     }
 

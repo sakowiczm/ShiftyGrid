@@ -5,32 +5,30 @@ using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
 using Windows.Win32;
 using Windows.Win32.Foundation;
-using Windows.Win32.Graphics.Gdi;
 
 namespace ShiftyGrid.Operations.Handlers;
 
 public record OrganizeOptions(
-    [property: JsonPropertyName("all")] bool All
+    [property: JsonPropertyName("all")] bool All,
+    [property: JsonPropertyName("hwnd")] string? Hwnd = null
 );
 
 internal class OrganizeCommandHandler : RequestHandler<OrganizeOptions>
 {
-    private readonly WindowMatcher _windowMatcher;
+    private readonly WindowOrganizer _organizer;
     private readonly WindowNavigationService _WindowNavigationService;
-    private readonly int _gap;
 
-    public OrganizeCommandHandler(WindowMatcher windowMatcher, WindowNavigationService WindowNavigationService, int gap)
+    public OrganizeCommandHandler(WindowOrganizer organizer, WindowNavigationService WindowNavigationService)
     {
-        _windowMatcher = windowMatcher ?? throw new ArgumentNullException(nameof(windowMatcher));
+        _organizer = organizer ?? throw new ArgumentNullException(nameof(organizer));
         _WindowNavigationService = WindowNavigationService ?? throw new ArgumentNullException(nameof(WindowNavigationService));
-        _gap = gap;
     }
 
     protected override Response Handle(OrganizeOptions data)
     {
         try
         {
-            var result = Execute(data.All);
+            var result = Execute(data.All, data.Hwnd);
             return result.Success
                 ? Response.CreateSuccess(result.Message)
                 : Response.CreateError(result.Message);
@@ -47,120 +45,35 @@ internal class OrganizeCommandHandler : RequestHandler<OrganizeOptions>
         return IpcJsonContext.Default.OrganizeOptions;
     }
 
-    private (bool Success, string Message) Execute(bool all)
+    private (bool Success, string Message) Execute(bool all, string? hwnd)
     {
         Logger.Info($"OrganizeCommand: Starting window organization");
-
-        // todo: need some thinking - maybe?
-        //  - organize - foreground window only - does not matter what monitor
-        //  - organize --all - all monitors? or add --monitor to organize all windows on given monitor?
 
         var foregroundHandle = PInvoke.GetForegroundWindow();
 
         // Get windows based on mode
         List<Window> windows;
-        if (all)
+        if (hwnd != null)
         {
-            // Process all windows across all monitors
-            // windows = _WindowNavigationService.GetAllWindows();
-
-            // Get current monitor (from foreground window or primary)
-            HMONITOR currentMonitor;
-            if (!foregroundHandle.IsNull)
-            {
-                currentMonitor = PInvoke.MonitorFromWindow(foregroundHandle, MONITOR_FROM_FLAGS.MONITOR_DEFAULTTONEAREST);
-            }
-            else
-            {
-                currentMonitor = GetPrimaryMonitor();
-            }
-
-            if (currentMonitor == IntPtr.Zero)
-            {
-                Logger.Warning("OrganizeCommand: Could not determine current monitor");
-                return (false, "Could not determine current monitor");
-            }
-
-            // Enumerate windows on current monitor
-            windows = _WindowNavigationService.GetWindowsOnMonitor(currentMonitor);
+            if (!nint.TryParse(hwnd, out var handle))
+                return (false, $"Invalid window handle: {hwnd}");
+            var window = Window.FromHandle(new HWND(handle), zOrder: 0);
+            if (window == null)
+                return (false, $"Window not found for handle: {hwnd}");
+            windows = [window];
+        }
+        else if (all)
+        {
+            windows = _WindowNavigationService.GetAllWindows();
         }
         else
         {
             windows = Window.GetForeground() is Window fgWindow ? [fgWindow] : [];
         }
 
-        Logger.Info($"OrganizeCommand: Found {windows.Count} windows across all monitors");
+        Logger.Info($"OrganizeCommand: Found {windows.Count} window(s)");
 
-        int successCount = 0;
-        int failedCount = 0;
-        int matchedCount = 0;
-
-        foreach (var window in windows)
-        {
-            // Skip ignored windows (global ignore list from config)
-            if (_windowMatcher.ShouldIgnore(window))
-            {
-                Logger.Debug($"OrganizeCommand: Ignoring window '{window.Text}' (matched ignore rule)");
-                continue;
-            }
-
-            // Skip minimized windows
-            if (window.State == WindowState.Minimized)
-                continue;
-
-            // Check if window is ready for positioning
-            if (!window.IsWindowReadyForPositioning())
-            {
-                Logger.Debug($"OrganizeCommand: Window '{window.Text}' not ready for positioning, skipping");
-                continue;
-            }
-
-            // Skip child windows, dialogs, and popups - only organize root windows
-            if (!window.IsParent)
-            {
-                Logger.Debug($"OrganizeCommand: Skipping child window '{window.Text}'");
-                continue;
-            }
-
-            // Find matching organize rule
-            var matchedRule = _windowMatcher.FindOrganizeRule(window);
-
-            if (matchedRule == null)
-            {
-                Logger.Debug($"OrganizeCommand: No match for window '{window.Text}' (class: {window.ClassName})");
-                continue;
-            }
-
-            matchedCount++;
-            Logger.Info($"OrganizeCommand: Matched '{window.Text}' -> {matchedRule.Command}");
-
-            // Use pre-parsed position from configuration
-            try
-            {
-                if (matchedRule.ParsedCoordinates == null)
-                {
-                    Logger.Error($"OrganizeCommand: Rule has no parsed position: {matchedRule.Command}");
-                    failedCount++;
-                    continue;
-                }
-
-                var positioned = WindowPositioner.ChangePosition(window, matchedRule.ParsedCoordinates.Value, _gap);
-                if (positioned)
-                {
-                    successCount++;
-                }
-                else
-                {
-                    failedCount++;
-                    Logger.Warning($"OrganizeCommand: Failed to position window '{window.Text}'");
-                }
-            }
-            catch (Exception ex)
-            {
-                failedCount++;
-                Logger.Error($"OrganizeCommand: Error processing window '{window.Text}': {ex.Message}", ex);
-            }
-        }
+        var (successCount, failedCount, matchedCount) = _organizer.OrganizeWindows(windows);
 
         // Restore foreground window if it changed
         if (!foregroundHandle.IsNull)
@@ -171,14 +84,10 @@ internal class OrganizeCommandHandler : RequestHandler<OrganizeOptions>
         Logger.Info($"OrganizeCommand: Completed - {successCount} success, {failedCount} failed, {matchedCount} total matched");
 
         if (matchedCount == 0)
-        {
             return (true, "No matching windows found to organize");
-        }
 
         if (failedCount > 0)
-        {
             return (true, $"Organized {successCount} window(s), {failedCount} failed");
-        }
 
         return (true, $"Organized {successCount} window(s)");
     }
@@ -227,20 +136,5 @@ internal class OrganizeCommandHandler : RequestHandler<OrganizeOptions>
         }
     }
 
-    /// <summary>
-    /// Get the primary monitor as fallback
-    /// </summary>
-    private HMONITOR GetPrimaryMonitor()
-    {
-        try
-        {
-            // Use null HWND to get primary monitor
-            return PInvoke.MonitorFromWindow(HWND.Null, MONITOR_FROM_FLAGS.MONITOR_DEFAULTTOPRIMARY);
-        }
-        catch (Exception ex)
-        {
-            Logger.Error("OrganizeCommand: Error getting primary monitor", ex);
-            return default;
-        }
-    }
+
 }

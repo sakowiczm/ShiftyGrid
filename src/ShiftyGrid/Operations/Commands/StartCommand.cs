@@ -46,12 +46,11 @@ public static class StartCommand
     }
 
     private static IpcServer? _ipcServer;
-    private static IpcClient? _ipcClient;
+    //private static IpcClient? _ipcClient;
     private static KeyboardEngine? _keyboardEngine;
     private static WindowLifecycleMonitor? _WindowLifecycleMonitor;
     private static bool _shouldExit;
     private static uint _mainThreadId;
-    private static bool _autoOrganizeEnabled = true;
 
 
     // Public properties to expose startup parameters for reload
@@ -130,7 +129,7 @@ public static class StartCommand
         _ipcServer.Start();
 
         // Create shared IPC client for keyboard shortcuts
-        _ipcClient = new IpcClient();
+        //_ipcClient = new IpcClient();
 
         // Initialize keyboard engine
         _keyboardEngine = new KeyboardEngine(300);
@@ -146,33 +145,25 @@ public static class StartCommand
         Logger.Info("IPC server started, entering message loop");
 
         // Initialize window event monitor for auto-organization
-        if (_autoOrganizeEnabled)
+        if (config.General.AutoOrganize)
         {
             var windowMatcher = new WindowMatcher(config);
-            _WindowLifecycleMonitor = new WindowLifecycleMonitor(windowMatcher, config.General.Gap);
+            var windowOrganizer = new WindowOrganizer(windowMatcher, config.General.Gap);
+            _WindowLifecycleMonitor = new WindowLifecycleMonitor(windowOrganizer);
             _WindowLifecycleMonitor.Start();
             Logger.Info("Window event monitor started (auto-organize enabled)");
+        }
 
-            // Organize existing windows at startup
-            Logger.Info("Running initial window organization...");
+        // Run startup commands
+        if (config.Startup.Commands.Count > 0)
+        {
+            Logger.Info("Running startup commands...");
             ThreadPool.QueueUserWorkItem(_ =>
             {
-                try
+                foreach (var commandString in config.Startup.Commands)
                 {
-                    var request = new Request { Command = "organize" };
-                    var response = _ipcClient?.SendRequestAsync(request).GetAwaiter().GetResult();
-                    if (response != null && !response.Success)
-                    {
-                        Logger.Warning($"Initial window organization completed with warnings: {response.Message}");
-                    }
-                    else
-                    {
-                        Logger.Info("Initial window organization completed");
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Logger.Error("Failed to run initial window organization", ex);
+                    Logger.Info($"Running startup command: {commandString}");
+                    ProcessSpawner.SpawnCommand(commandString);
                 }
             });
         }

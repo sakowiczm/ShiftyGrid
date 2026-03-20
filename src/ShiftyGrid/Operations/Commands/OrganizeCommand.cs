@@ -21,19 +21,25 @@ public class OrganizeCommand : BaseCommand
             getDefaultValue: () => false
         );
 
+        var windowOption = new Option<string?>(
+            aliases: ["--window", "-w"],
+            description: "Window handle (HWND) to organize instead of the foreground window"
+        );
+
         organizeCommand.AddOption(allOption);
+        organizeCommand.AddOption(windowOption);
 
         organizeCommand.SetHandler(
-            async (allMonitors) => await SendAsync(allMonitors),
-            allOption
+            async (allMonitors, hwnd) => await SendAsync(allMonitors, hwnd),
+            allOption, windowOption
         );
 
         return organizeCommand;
     }
 
-    public async Task SendAsync(bool processAllMonitors)
+    public async Task SendAsync(bool processAllMonitors, string? hwnd = null)
     {
-        var options = new OrganizeOptions(processAllMonitors);
+        var options = new OrganizeOptions(processAllMonitors, hwnd);
         await SendRequestAsync(
             $"Sending {Name} command to running instance...",
             Name,

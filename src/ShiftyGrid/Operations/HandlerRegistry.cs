@@ -23,6 +23,7 @@ internal class HandlerRegistry : IRequestHandler
         var WindowNavigationService = new WindowNavigationService(windowMatcher, config.General.ProximityThreshold);
         var windowSelector = new WindowSelector(WindowNavigationService, windowMatcher);
         int gap = config.General.Gap;
+        var windowOrganizer = new WindowOrganizer(windowMatcher, gap);
 
         // Register handlers
         _handlers[ExitCommand.Name] = new ExitCommandHandler(setShouldExit, getShouldExit, mainThreadId);
@@ -31,7 +32,7 @@ internal class HandlerRegistry : IRequestHandler
         _handlers[SwapCommand.Name] = new SwapCommandHandler(WindowNavigationService);
         _handlers[ResizeCommand.Name] = new ResizeCommandHandler(WindowNavigationService, gap);
         _handlers[PromoteCommand.Name] = new PromoteCommandHandler(gap);
-        _handlers[OrganizeCommand.Name] = new OrganizeCommandHandler(windowMatcher, WindowNavigationService, gap);
+        _handlers[OrganizeCommand.Name] = new OrganizeCommandHandler(windowOrganizer, WindowNavigationService);
         _handlers[FocusCommand.Name] = new FocusCommandHandler(WindowNavigationService, windowMatcher);
         _handlers[ArrangeCommand.Name] = new ArrangeCommandHandler(windowSelector, gap);
     }
