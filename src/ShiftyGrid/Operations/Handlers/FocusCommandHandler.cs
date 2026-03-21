@@ -89,29 +89,31 @@ internal class FocusCommandHandler : RequestHandler<Direction>
         {
             var currentForeground = PInvoke.GetForegroundWindow();
             if (currentForeground == hwnd)
-            {
-                // Already the foreground window
                 return true;
-            }
 
-            // Get thread IDs
             uint currentThreadId = PInvoke.GetCurrentThreadId();
             uint foregroundThreadId = PInvoke.GetWindowThreadProcessId(currentForeground, null);
+            uint targetThreadId = PInvoke.GetWindowThreadProcessId(hwnd, null);
+
+            bool attachedForeground = false;
+            bool attachedTarget = false;
 
             if (foregroundThreadId != currentThreadId)
-            {
-                // Attach to foreground thread's input queue
-                PInvoke.AttachThreadInput(currentThreadId, foregroundThreadId, true);
-            }
+                attachedForeground = PInvoke.AttachThreadInput(currentThreadId, foregroundThreadId, true);
 
-            // Set foreground window
+            // Also attach to the target window's thread — required for Electron/Chromium apps (e.g. Slack)
+            // where the target window runs on a thread separate from the current foreground thread.
+            // Without this, AttachThreadInput grants no permission to activate the target.
+            if (targetThreadId != currentThreadId && targetThreadId != foregroundThreadId)
+                attachedTarget = PInvoke.AttachThreadInput(currentThreadId, targetThreadId, true);
+
             var success = PInvoke.SetForegroundWindow(hwnd);
+            PInvoke.BringWindowToTop(hwnd); // Required for apps that manage their own window stacking (e.g. Electron)
 
-            if (foregroundThreadId != currentThreadId)
-            {
-                // Detach from foreground thread's input queue
+            if (attachedForeground)
                 PInvoke.AttachThreadInput(currentThreadId, foregroundThreadId, false);
-            }
+            if (attachedTarget)
+                PInvoke.AttachThreadInput(currentThreadId, targetThreadId, false);
 
             return success;
         }

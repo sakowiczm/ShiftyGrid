@@ -82,3 +82,4 @@ REDRAW_WINDOW_FLAGS
 
 GetWindow
 GET_WINDOW_CMD
+BringWindowToTop
