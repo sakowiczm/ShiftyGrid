@@ -235,6 +235,8 @@ public static class ConfigurationService
     /// </summary>
     private static void ParseOrganizeCommands(ShiftyGridConfig config)
     {
+        var configGridDefault = config.General.Grid ?? "12x12";
+
         foreach (var rule in config.Organize.Rules)
         {
             try
@@ -269,7 +271,7 @@ public static class ConfigurationService
                 }
 
                 // Use CoordinatesParser to parse coordinates
-                var coordinates = Coordinates.Parse(coordinatesString, gridString ?? "12x12");
+                var coordinates = Coordinates.Parse(coordinatesString, gridString ?? configGridDefault);
                 rule.ParsedCoordinates = coordinates;
 
                 Logger.Debug($"Parsed organize rule: {rule.Command} -> Coordinates({coordinates.StartX},{coordinates.StartY},{coordinates.EndX},{coordinates.EndY})");
@@ -360,6 +362,7 @@ public static class ConfigurationService
             General = new GeneralSettings
             {
                 Gap = 4,
+                Grid = "12x12",
                 ProximityThreshold = 20,
                 LogLevel = "info"
             },
@@ -402,18 +405,18 @@ public static class ConfigurationService
                         AllowEscape = true,
                         Shortcuts = new List<ModeShortcutConfig>
                         {
-                            new() { Bindings = new List<string> { "1" }, Command = "move --grid 12x12 --coordinates 0,0,6,12" },
-                            new() { Bindings = new List<string> { "2" }, Command = "move --grid 12x12 --coordinates 6,0,12,12" },
-                            new() { Bindings = new List<string> { "s" }, Command = "move --grid 12x12 --coordinates 2,0,10,12" },
-                            new() { Bindings = new List<string> { "space" }, Command = "move --grid 12x12 --coordinates 1,0,11,12" },
-                            new() { Bindings = new List<string> { "f" }, Command = "move --grid 12x12 --coordinates 0,0,12,12" },
-                            new() { Bindings = new List<string> { ",", "comma" }, Command = "move --grid 12x12 --coordinates 0,0,4,12" },
-                            new() { Bindings = new List<string> { ".", "period" }, Command = "move --grid 12x12 --coordinates 4,0,8,12" },
-                            new() { Bindings = new List<string> { "/", "slash" }, Command = "move --grid 12x12 --coordinates 8,0,12,12" },
-                            new() { Bindings = new List<string> { "o" }, Command = "move --grid 12x12 --coordinates 0,0,6,6" },
-                            new() { Bindings = new List<string> { "p" }, Command = "move --grid 12x12 --coordinates 6,0,12,6" },
-                            new() { Bindings = new List<string> { "k" }, Command = "move --grid 12x12 --coordinates 0,6,6,12" },
-                            new() { Bindings = new List<string> { "l" }, Command = "move --grid 12x12 --coordinates 6,6,12,12" }
+                            new() { Bindings = new List<string> { "1" }, Command = "move --coordinates 0,0,6,12" },
+                            new() { Bindings = new List<string> { "2" }, Command = "move --coordinates 6,0,12,12" },
+                            new() { Bindings = new List<string> { "s" }, Command = "move --coordinates 2,0,10,12" },
+                            new() { Bindings = new List<string> { "space" }, Command = "move --coordinates 1,0,11,12" },
+                            new() { Bindings = new List<string> { "f" }, Command = "move --coordinates 0,0,12,12" },
+                            new() { Bindings = new List<string> { ",", "comma" }, Command = "move --coordinates 0,0,4,12" },
+                            new() { Bindings = new List<string> { ".", "period" }, Command = "move --coordinates 4,0,8,12" },
+                            new() { Bindings = new List<string> { "/", "slash" }, Command = "move --coordinates 8,0,12,12" },
+                            new() { Bindings = new List<string> { "o" }, Command = "move --coordinates 0,0,6,6" },
+                            new() { Bindings = new List<string> { "p" }, Command = "move --coordinates 6,0,12,6" },
+                            new() { Bindings = new List<string> { "k" }, Command = "move --coordinates 0,6,6,12" },
+                            new() { Bindings = new List<string> { "l" }, Command = "move --coordinates 6,6,12,12" }
                         }
                     },
                     new ModeConfig
@@ -440,11 +443,11 @@ public static class ConfigurationService
             {
                 Rules = new List<OrganizeRule>
                 {
-                    new() { Match = new WindowMatchConfig { ProcessName = "WindowsTerminal" }, Command = "move --grid 12x12 --coordinates 0,0,6,12" },
-                    new() { Match = new WindowMatchConfig { TitlePattern = "Slack" }, Command = "move --grid 12x12 --coordinates 6,0,12,12" },
-                    new() { Match = new WindowMatchConfig { TitlePattern = "Docker Desktop" }, Command = "move --grid 12x12 --coordinates 6,0,12,12" },
-                    new() { Match = new WindowMatchConfig { ProcessName = "Fork" }, Command = "move --grid 12x12 --coordinates 0,0,6,12" },
-                    new() { Match = new WindowMatchConfig { ProcessName = "Code" }, Command = "move --grid 12x12 --coordinates 0,0,6,12" }
+                    new() { Match = new WindowMatchConfig { ProcessName = "WindowsTerminal" }, Command = "move --coordinates 0,0,6,12" },
+                    new() { Match = new WindowMatchConfig { TitlePattern = "Slack" }, Command = "move --coordinates 6,0,12,12" },
+                    new() { Match = new WindowMatchConfig { TitlePattern = "Docker Desktop" }, Command = "move --coordinates 6,0,12,12" },
+                    new() { Match = new WindowMatchConfig { ProcessName = "Fork" }, Command = "move --coordinates 0,0,6,12" },
+                    new() { Match = new WindowMatchConfig { ProcessName = "Code" }, Command = "move --coordinates 0,0,6,12" }
                 }
             },
             Ignore = new IgnoreSettings

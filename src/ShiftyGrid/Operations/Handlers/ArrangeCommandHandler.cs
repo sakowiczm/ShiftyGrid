@@ -17,11 +17,13 @@ internal class ArrangeCommandHandler : RequestHandler<ArrangeOptions>
 {
     private readonly WindowSelector _windowSelector;
     private readonly int _gap;
+    private readonly Grid _grid;
 
-    public ArrangeCommandHandler(WindowSelector windowSelector, int gap)
+    public ArrangeCommandHandler(WindowSelector windowSelector, int gap, Grid grid)
     {
         _windowSelector = windowSelector ?? throw new ArgumentNullException(nameof(windowSelector));
         _gap = gap;
+        _grid = grid;
     }
 
     protected override Response Handle(ArrangeOptions options)
@@ -54,9 +56,9 @@ internal class ArrangeCommandHandler : RequestHandler<ArrangeOptions>
                 {
                     return Response.CreateError("Invalid zone format. Expected x1,y1,x2,y2 (e.g. 0,0,6,12).");
                 }
-                if (zx1 < 0 || zy1 < 0 || zx2 > 12 || zy2 > 12)
+                if (zx1 < 0 || zy1 < 0 || zx2 > _grid.Columns || zy2 > _grid.Rows)
                 {
-                    return Response.CreateError("Zone coordinates must be within 0–12.");
+                    return Response.CreateError($"Zone coordinates must be within 0–{_grid.Columns} (x) and 0–{_grid.Rows} (y).");
                 }
                 if (zx2 <= zx1 || zy2 <= zy1)
                 {
@@ -130,9 +132,7 @@ internal class ArrangeCommandHandler : RequestHandler<ArrangeOptions>
 
     private List<Coordinates> GenerateGridCoordinates(int rows, int cols, string? zone = null)
     {
-        const int gridSize = 12;
-
-        int zoneStartX = 0, zoneStartY = 0, zoneEndX = gridSize, zoneEndY = gridSize;
+        int zoneStartX = 0, zoneStartY = 0, zoneEndX = _grid.Columns, zoneEndY = _grid.Rows;
         if (zone != null)
         {
             var parts = zone.Split(',');
@@ -159,7 +159,7 @@ internal class ArrangeCommandHandler : RequestHandler<ArrangeOptions>
                 int endX = zoneStartX + (col + 1) * cellWidth;
                 int endY = zoneStartY + (row + 1) * cellHeight;
 
-                positions.Add(new Coordinates(new Grid(gridSize, gridSize), startX, startY, endX, endY));
+                positions.Add(new Coordinates(_grid, startX, startY, endX, endY));
             }
         }
 

@@ -4,6 +4,7 @@ using ShiftyGrid.Windows;
 using ShiftyGrid.Operations.Commands;
 //using ShiftyGrid.Infrastructure.Display;
 using ShiftyGrid.Common;
+using ShiftyGrid.Infrastructure.Models;
 
 namespace ShiftyGrid.Operations.Handlers;
 
@@ -30,11 +31,12 @@ internal class HandlerRegistry : IRequestHandler
         _handlers[StatusCommand.Name] = new StatusCommandHandler();
         _handlers[MoveCommand.Name] = new MoveCommandHandler(gap);
         _handlers[SwapCommand.Name] = new SwapCommandHandler(WindowNavigationService);
-        _handlers[ResizeCommand.Name] = new ResizeCommandHandler(WindowNavigationService, gap);
+        var grid = Grid.Parse(config.General.Grid ?? "12x12");
+        _handlers[ResizeCommand.Name] = new ResizeCommandHandler(WindowNavigationService, gap, grid);
         _handlers[PromoteCommand.Name] = new PromoteCommandHandler(gap);
         _handlers[OrganizeCommand.Name] = new OrganizeCommandHandler(windowOrganizer, WindowNavigationService);
         _handlers[FocusCommand.Name] = new FocusCommandHandler(WindowNavigationService, windowMatcher);
-        _handlers[ArrangeCommand.Name] = new ArrangeCommandHandler(windowSelector, gap);
+        _handlers[ArrangeCommand.Name] = new ArrangeCommandHandler(windowSelector, gap, grid);
     }
 
     public Response Handle(Request request)

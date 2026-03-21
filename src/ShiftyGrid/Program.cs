@@ -9,7 +9,7 @@ internal class Program
     private static int Main(string[] args)
     {
         ConsoleManager.Attach();
-    
+
         return CreateRootCommand().Invoke(args);
     }
 
@@ -49,14 +49,14 @@ internal class Program
         rootCommand.AddCommand(new StatusCommand().Create());
         rootCommand.AddCommand(new AboutCommand().Create());
 
-        rootCommand.AddCommand(new MoveCommand().Create());
+        rootCommand.AddCommand(new MoveCommand().Create(configOption));
         rootCommand.AddCommand(new ArrangeCommand().Create());
         rootCommand.AddCommand(new OrganizeCommand().Create());
         rootCommand.AddCommand(new SwapCommand().Create());
         rootCommand.AddCommand(new ResizeCommand().Create());
-        rootCommand.AddCommand(new PromoteCommand().Create());
+        rootCommand.AddCommand(new PromoteCommand().Create(configOption));
         rootCommand.AddCommand(new FocusCommand().Create());
 
         return rootCommand;
-    }    
+    }
 }

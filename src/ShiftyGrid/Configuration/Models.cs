@@ -29,6 +29,9 @@ public class ShiftyGridConfig
 /// </summary>
 public class GeneralSettings
 {
+    [YamlMember(Alias = "grid")]
+    public string? Grid { get; set; }
+
     [YamlMember(Alias = "gap")]
     public int Gap { get; set; } = 4;
 

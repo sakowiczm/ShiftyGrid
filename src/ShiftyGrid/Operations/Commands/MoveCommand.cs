@@ -1,3 +1,4 @@
+using ShiftyGrid.Configuration;
 using ShiftyGrid.Infrastructure.Models;
 using System.CommandLine;
 
@@ -7,7 +8,7 @@ public class MoveCommand : BaseCommand
 {
     public const string Name = "move";
 
-    public Command Create()
+    public Command Create(Option<string?> configOption)
     {
         var moveCommand = new Command(Name, "Move the foreground window to specified grid coordinates");
 
@@ -17,31 +18,36 @@ public class MoveCommand : BaseCommand
         )
         { IsRequired = true };
 
-        var gridOption = new Option<string>(
+        var gridOption = new Option<string?>(
             aliases: ["--grid", "-g"],
-            getDefaultValue: () => "12x12",
             description: "Grid size in format NxM (e.g., \"12x12\", \"24x24\")"
         );
 
         moveCommand.AddOption(coordinatesOption);
         moveCommand.AddOption(gridOption);
 
-        moveCommand.SetHandler(
-            async (coordinatesStr, gridStr) =>
+        moveCommand.SetHandler(async (context) =>
+        {
+            var coordinatesStr = context.ParseResult.GetValueForOption(coordinatesOption)!;
+            var gridStr = context.ParseResult.GetValueForOption(gridOption);
+            var configPath = context.ParseResult.GetValueForOption(configOption);
+
+            if (gridStr == null)
             {
-                try
-                {
-                    var coordinates = Coordinates.Parse(coordinatesStr, gridStr);
-                    await SendAsync(coordinates);
-                }
-                catch (ArgumentException ex)
-                {
-                    Console.WriteLine($"Error: {ex.Message}");
-                }
-            },
-            coordinatesOption,
-            gridOption
-        );
+                var config = ConfigurationService.LoadConfiguration(configPath);
+                gridStr = config.General.Grid ?? "12x12";
+            }
+
+            try
+            {
+                var coordinates = Coordinates.Parse(coordinatesStr, gridStr);
+                await SendAsync(coordinates);
+            }
+            catch (ArgumentException ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+            }
+        });
 
         return moveCommand;
     }

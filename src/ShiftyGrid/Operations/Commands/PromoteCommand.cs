@@ -1,3 +1,4 @@
+using ShiftyGrid.Configuration;
 using ShiftyGrid.Infrastructure.Models;
 using System.CommandLine;
 
@@ -12,7 +13,7 @@ public class PromoteCommand : BaseCommand
 {
     public const string Name = "promote";
 
-    public Command Create()
+    public Command Create(Option<string?> configOption)
     {
         var promoteCommand = new Command(Name,
             "Toggle promotion of foreground window to specified coordinates");
@@ -20,33 +21,39 @@ public class PromoteCommand : BaseCommand
         var coordinatesOption = new Option<string>(
             aliases: ["--coordinates", "-c"],
             description: "Coordinates: startX,startY,endX,endY (e.g., \"1,0,11,12\")"
-        ) { IsRequired = true };
+        )
+        { IsRequired = true };
 
-        var gridOption = new Option<string>(
+        var gridOption = new Option<string?>(
             aliases: ["--grid", "-g"],
-            description: "Grid size in format NxM (e.g., \"12x12\")",
-            getDefaultValue: () => "12x12"
+            description: "Grid size in format NxM (e.g., \"12x12\")"
         );
 
         promoteCommand.AddOption(coordinatesOption);
         promoteCommand.AddOption(gridOption);
 
-        promoteCommand.SetHandler(
-            async (coordinatesStr, gridStr) =>
+        promoteCommand.SetHandler(async (context) =>
+        {
+            var coordinatesStr = context.ParseResult.GetValueForOption(coordinatesOption)!;
+            var gridStr = context.ParseResult.GetValueForOption(gridOption);
+            var configPath = context.ParseResult.GetValueForOption(configOption);
+
+            if (gridStr == null)
             {
-                try
-                {
-                    var coordinates = Coordinates.Parse(coordinatesStr, gridStr);
-                    await SendAsync(coordinates);
-                }
-                catch (ArgumentException ex)
-                {
-                    Console.WriteLine($"Error: {ex.Message}");
-                }
-            },
-            coordinatesOption,
-            gridOption
-        );
+                var config = ConfigurationService.LoadConfiguration(configPath);
+                gridStr = config.General.Grid ?? "12x12";
+            }
+
+            try
+            {
+                var coordinates = Coordinates.Parse(coordinatesStr, gridStr);
+                await SendAsync(coordinates);
+            }
+            catch (ArgumentException ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+            }
+        });
 
         return promoteCommand;
     }
