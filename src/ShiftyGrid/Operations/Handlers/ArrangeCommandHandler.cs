@@ -9,7 +9,8 @@ namespace ShiftyGrid.Operations.Handlers;
 
 public record ArrangeOptions(
     [property: JsonPropertyName("rows")] int Rows,
-    [property: JsonPropertyName("cols")] int Cols
+    [property: JsonPropertyName("cols")] int Cols,
+    [property: JsonPropertyName("zone")] string? Zone = null
 );
 
 internal class ArrangeCommandHandler : RequestHandler<ArrangeOptions>
@@ -44,7 +45,26 @@ internal class ArrangeCommandHandler : RequestHandler<ArrangeOptions>
                 return Response.CreateError($"Invalid grid: {options.Rows}x{options.Cols} = {totalCells} cells. Maximum is 8 cells.");
             }
 
-            var success = Execute(options.Rows, options.Cols);
+            if (options.Zone != null)
+            {
+                var parts = options.Zone.Split(',');
+                if (parts.Length != 4 ||
+                    !int.TryParse(parts[0], out int zx1) || !int.TryParse(parts[1], out int zy1) ||
+                    !int.TryParse(parts[2], out int zx2) || !int.TryParse(parts[3], out int zy2))
+                {
+                    return Response.CreateError("Invalid zone format. Expected x1,y1,x2,y2 (e.g. 0,0,6,12).");
+                }
+                if (zx1 < 0 || zy1 < 0 || zx2 > 12 || zy2 > 12)
+                {
+                    return Response.CreateError("Zone coordinates must be within 0–12.");
+                }
+                if (zx2 <= zx1 || zy2 <= zy1)
+                {
+                    return Response.CreateError("Zone x2 must be greater than x1, and y2 must be greater than y1.");
+                }
+            }
+
+            var success = Execute(options.Rows, options.Cols, options.Zone);
             return success
                 ? Response.CreateSuccess($"Windows arranged in {options.Rows}x{options.Cols} grid")
                 : Response.CreateError("Error arranging windows");
@@ -61,7 +81,7 @@ internal class ArrangeCommandHandler : RequestHandler<ArrangeOptions>
         return IpcJsonContext.Default.ArrangeOptions;
     }
 
-    private bool Execute(int rows, int cols)
+    private bool Execute(int rows, int cols, string? zone = null)
     {
         // Get active window
         var activeWindow = Window.GetForeground();
@@ -92,7 +112,7 @@ internal class ArrangeCommandHandler : RequestHandler<ArrangeOptions>
             return false;
         }
 
-        var coordinates = GenerateGridCoordinates(rows, cols);
+        var coordinates = GenerateGridCoordinates(rows, cols, zone);
 
         // Assign windows to coordinates (up to available windows)
         bool success = true;
@@ -108,33 +128,38 @@ internal class ArrangeCommandHandler : RequestHandler<ArrangeOptions>
         return success;
     }
 
-    private List<Coordinates> GenerateGridCoordinates(int rows, int cols)
+    private List<Coordinates> GenerateGridCoordinates(int rows, int cols, string? zone = null)
     {
         const int gridSize = 12;
-        var positions = new List<Coordinates>();
 
-        int cellWidth = gridSize / cols;
-        int cellHeight = gridSize / rows;
+        int zoneStartX = 0, zoneStartY = 0, zoneEndX = gridSize, zoneEndY = gridSize;
+        if (zone != null)
+        {
+            var parts = zone.Split(',');
+            zoneStartX = int.Parse(parts[0]);
+            zoneStartY = int.Parse(parts[1]);
+            zoneEndX = int.Parse(parts[2]);
+            zoneEndY = int.Parse(parts[3]);
+        }
+
+        int zoneWidth = zoneEndX - zoneStartX;
+        int zoneHeight = zoneEndY - zoneStartY;
+        int cellWidth = zoneWidth / cols;
+        int cellHeight = zoneHeight / rows;
+
+        var positions = new List<Coordinates>();
 
         // Generate coordinates in reading order (left-to-right, top-to-bottom)
         for (int row = 0; row < rows; row++)
         {
             for (int col = 0; col < cols; col++)
             {
-                int startX = col * cellWidth;
-                int startY = row * cellHeight;
-                int endX = (col + 1) * cellWidth;
-                int endY = (row + 1) * cellHeight;
+                int startX = zoneStartX + col * cellWidth;
+                int startY = zoneStartY + row * cellHeight;
+                int endX = zoneStartX + (col + 1) * cellWidth;
+                int endY = zoneStartY + (row + 1) * cellHeight;
 
-                var coordinates = new Coordinates(
-                    new Grid(gridSize, gridSize),
-                    startX,
-                    startY,
-                    endX,
-                    endY
-                );
-
-                positions.Add(coordinates);
+                positions.Add(new Coordinates(new Grid(gridSize, gridSize), startX, startY, endX, endY));
             }
         }
 

@@ -23,21 +23,29 @@ public class ArrangeCommand : BaseCommand
             getDefaultValue: () => 2
         );
 
+        var zoneOption = new Option<string?>(
+            aliases: ["--zone", "-z"],
+            description: "Limit arrangement to a zone in 12x12 grid coordinates: x1,y1,x2,y2 (e.g. 0,0,6,12)",
+            getDefaultValue: () => null
+        );
+
         arrangeCommand.AddOption(rowsOption);
         arrangeCommand.AddOption(colsOption);
+        arrangeCommand.AddOption(zoneOption);
 
         arrangeCommand.SetHandler(
-            async (rows, cols) => await SendAsync(rows, cols),
+            async (rows, cols, zone) => await SendAsync(rows, cols, zone),
             rowsOption,
-            colsOption
+            colsOption,
+            zoneOption
         );
 
         return arrangeCommand;
     }
 
-    private async Task SendAsync(int rows, int cols)
+    private async Task SendAsync(int rows, int cols, string? zone)
     {
-        var options = new ArrangeOptions(rows, cols);
+        var options = new ArrangeOptions(rows, cols, zone);
         await SendRequestAsync($"Arranging windows in {rows}x{cols} grid", Name, options);
     }
 }

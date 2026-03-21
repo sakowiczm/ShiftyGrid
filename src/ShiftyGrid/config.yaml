@@ -1,5 +1,5 @@
 general:
-  gap: 2
+  gap: 10
   proximity_threshold: 20
   log_level: info
 
@@ -44,6 +44,12 @@ keyboard:
     - bindings:
         - ctrl+alt+4
       command: arrange --rows 2 --cols 2
+    - bindings:
+        - ctrl+shift+1
+      command: arrange --rows 2 --cols 1 --zone 0,0,6,12
+    - bindings:
+        - ctrl+shift+2
+      command: arrange --rows 2 --cols 1 --zone 6,0,12,12
     - bindings:
         - ctrl+alt+return
       command: promote --grid 12x12 --coordinates 1,0,11,12

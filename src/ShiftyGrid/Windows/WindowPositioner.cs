@@ -55,9 +55,10 @@ public class WindowPositioner
         endX = Math.Clamp(endX, 0, grid.Columns);
         endY = Math.Clamp(endY, 0, grid.Rows);
 
-        // Ensure minimum size (2 grid unit)
-        if (endX - startX < 1) endX = startX + 2;
-        if (endY - startY < 1) endY = startY + 2;
+        // Ensure minimum size (2 grid units). Clamp to 1 (below MIN) so that
+        // the sub-minimum state is preserved and the first expand lands at exactly MIN.
+        if (endX - startX < 1) endX = startX + 1;
+        if (endY - startY < 1) endY = startY + 1;
 
         return new Coordinates(grid, startX, startY, endX, endY);
     }
@@ -137,7 +138,7 @@ public class WindowPositioner
 
             window = restoredWindow;
             Logger.Debug("Window restored successfully, proceeding with positioning");
-        }        
+        }
 
         var offsets = WindowBorderService.CalculateOffsets(window);
         Logger.Debug($"Invisible border offsets - Left: {offsets.Left}, Top: {offsets.Top}, Right: {offsets.Right}, Bottom: {offsets.Bottom}");
@@ -169,9 +170,8 @@ public class WindowPositioner
 
         var result = PInvoke.SetWindowPos(
             window.Handle,
-            HWND.Null,
+            new HWND(0),   // HWND_TOP: brings window to top of non-topmost z-order
             x, y, width, height,
-            SET_WINDOW_POS_FLAGS.SWP_NOZORDER |
             SET_WINDOW_POS_FLAGS.SWP_NOACTIVATE |
             SET_WINDOW_POS_FLAGS.SWP_FRAMECHANGED);  // Forces frame recalculation
 
