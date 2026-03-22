@@ -45,8 +45,6 @@ internal class SwapCommandHandler : RequestHandler<Direction>
         if (activeWindow == null)
             return false;
 
-        // todo: if active window is maximized or IsFullscreen or is one of the excluded windows or is not visible etc. abandon
-
         var adjacentWindow = _WindowNavigationService.GetAdjacentWindow(activeWindow, direction);
         if (adjacentWindow == null)
             return false;
@@ -62,7 +60,6 @@ internal class SwapCommandHandler : RequestHandler<Direction>
             return false;
         }
 
-        // Calculate border offsets for each window
         // Calculate border offsets for both windows
         var offsets1 = WindowBorderService.CalculateOffsets(window1);
         int widthOffset1 = WindowBorderService.CalculateWidthOffset(window1);

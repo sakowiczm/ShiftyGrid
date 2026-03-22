@@ -28,8 +28,6 @@ internal record Window
 
     public uint DPI { get; init; }
 
-    // Position in Z-order stack (0 = topmost)
-    // todo: make nullable? when not initialized?
     public int ZOrder { get; init; }
 
     public required HMONITOR MonitorHandle { get; init; }
@@ -184,13 +182,6 @@ internal record Window
         // If we can check and transitions are disabled, window is still initializing
         return result.Succeeded && transitionsDisabled != 0;
     }
-
-
-    //public bool IsForeground() => IsForeground(Handle);
-
-    //internal static bool IsForeground(HWND hwnd) => PInvoke.GetForegroundWindow() == hwnd;
-
-    //public bool IsValidForBorder() => IsForeground() && IsWindowReady();
 
     public unsafe string? GetProcessName()
     {

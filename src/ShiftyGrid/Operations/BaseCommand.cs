@@ -1,4 +1,3 @@
-using ShiftyGrid.Configuration;
 using ShiftyGrid.Server;
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
@@ -90,7 +89,6 @@ public abstract class BaseCommand
     {
         try
         {
-            // tood: have dedicated health check command
             var request = new Request { Command = "status" };
             var response = await client.SendRequestAsync(request);
             

@@ -202,6 +202,4 @@ internal class FocusCommandHandler : RequestHandler<Direction>
 
         return bestMatch;
     }
-
-    // Note: Overlap calculation methods moved to WindowGeometry class
 }

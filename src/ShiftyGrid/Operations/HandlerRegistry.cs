@@ -2,7 +2,6 @@ using ShiftyGrid.Configuration;
 using ShiftyGrid.Server;
 using ShiftyGrid.Windows;
 using ShiftyGrid.Operations.Commands;
-//using ShiftyGrid.Infrastructure.Display;
 using ShiftyGrid.Common;
 using ShiftyGrid.Infrastructure.Models;
 
@@ -18,20 +17,21 @@ internal class HandlerRegistry : IRequestHandler
         _getShouldExit = getShouldExit;
 
         // Create shared services
+        int gap = config.General.Gap;
+        var grid = Grid.Parse(config.General.Grid ?? "12x12");
+
         var windowMatcher = new WindowMatcher(config);
-        //var windowValidator = new WindowValidator(windowMatcher);
-        //var monitorManager = new MonitorManager();
         var WindowNavigationService = new WindowNavigationService(windowMatcher, config.General.ProximityThreshold);
         var windowSelector = new WindowSelector(WindowNavigationService, windowMatcher);
-        int gap = config.General.Gap;
         var windowOrganizer = new WindowOrganizer(windowMatcher, gap);
+        
 
         // Register handlers
         _handlers[ExitCommand.Name] = new ExitCommandHandler(setShouldExit, getShouldExit, mainThreadId);
         _handlers[StatusCommand.Name] = new StatusCommandHandler();
         _handlers[MoveCommand.Name] = new MoveCommandHandler(gap);
         _handlers[SwapCommand.Name] = new SwapCommandHandler(WindowNavigationService);
-        var grid = Grid.Parse(config.General.Grid ?? "12x12");
+        
         _handlers[ResizeCommand.Name] = new ResizeCommandHandler(WindowNavigationService, gap, grid);
         _handlers[PromoteCommand.Name] = new PromoteCommandHandler(gap);
         _handlers[OrganizeCommand.Name] = new OrganizeCommandHandler(windowOrganizer, WindowNavigationService);

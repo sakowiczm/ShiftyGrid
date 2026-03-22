@@ -6,10 +6,6 @@ using ShiftyGrid.Common;
 
 namespace ShiftyGrid.Operations.Handlers;
 
-// todo: issue when initally window is samller than minimal size
-// todo: resize issues up or down - single window
-// todo: pass minimal size to ConvertWindowToGridPosition
-// todo: remove WindowResize as it's no longer necessary
 
 internal enum WindowResize
 {

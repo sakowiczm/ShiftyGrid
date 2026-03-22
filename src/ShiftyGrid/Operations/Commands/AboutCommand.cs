@@ -32,7 +32,7 @@ public class AboutCommand
         Console.WriteLine("                  grid-based positioning.");
         Console.WriteLine();
         Console.WriteLine("  Features:");
-        Console.WriteLine("    - Modal keyboard shortcuts (Ctrl+Shift+S)");
+        Console.WriteLine("    - Modal keyboard shortcuts");
         Console.WriteLine("    - Grid-based window positioning");
         Console.WriteLine("    - Multi-monitor support");
         Console.WriteLine("    - Native AOT compilation for fast startup");

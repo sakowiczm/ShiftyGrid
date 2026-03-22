@@ -136,5 +136,4 @@ internal class OrganizeCommandHandler : RequestHandler<OrganizeOptions>
         }
     }
 
-
 }
