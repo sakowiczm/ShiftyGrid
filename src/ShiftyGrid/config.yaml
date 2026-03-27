@@ -6,7 +6,7 @@ general:
 
 startup:
   commands:
-    - "organize --all"
+    - organize --all
 
 keyboard:
 
@@ -45,12 +45,15 @@ keyboard:
     - bindings:
         - ctrl+alt+4
       command: arrange --rows 2 --cols 2
+    # Stack 2 windows in left half
     - bindings:
         - ctrl+shift+1
       command: arrange --rows 2 --cols 1 --zone 0,0,6,12
+    # Stack 2 windows in right half
     - bindings:
         - ctrl+shift+2
       command: arrange --rows 2 --cols 1 --zone 6,0,12,12
+    # Center with margins (columns 1-10, all rows)
     - bindings:
         - ctrl+alt+return
       command: promote --coordinates 1,0,11,12
@@ -66,42 +69,54 @@ keyboard:
         - ctrl+shift+d
       allow_escape: true
       shortcuts:
+        # Left half (columns 0-5, all rows)
         - bindings:
             - "1"
           command: move --coordinates 0,0,6,12
+        # Right half (columns 6-11, all rows)
         - bindings:
             - "2"
           command: move --coordinates 6,0,12,12
+        # Center with margins (columns 2-9, all rows)
         - bindings:
             - s
           command: move --coordinates 2,0,10,12
+        # Center (columns 1-10, all rows)
         - bindings:
             - space
           command: move --coordinates 1,0,11,12
+        # Full screen (all columns and rows)
         - bindings:
             - f
           command: move --coordinates 0,0,12,12
+        # Left third (columns 0-3, all rows)
         - bindings:
             - ","
             - comma
           command: move --coordinates 0,0,4,12
+        # Middle third (columns 4-7, all rows)
         - bindings:
             - "."
             - period
           command: move --coordinates 4,0,8,12
+        # Right third (columns 8-11, all rows)
         - bindings:
             - /
             - slash
           command: move --coordinates 8,0,12,12
+        # Top-left quadrant
         - bindings:
             - o
           command: move --coordinates 0,0,6,6
+        # Top-right quadrant
         - bindings:
             - p
           command: move --coordinates 6,0,12,6
+        # Bottom-left quadrant
         - bindings:
             - k
           command: move --coordinates 0,6,6,12
+        # Bottom-right quadrant
         - bindings:
             - l
           command: move --coordinates 6,6,12,12
@@ -147,37 +162,48 @@ keyboard:
 
 organize:
   rules:
+    # Left half (columns 0-5, all rows)
     - match:
         process_name: WindowsTerminal
       command: move --coordinates 0,0,6,12
+    # Right half (columns 6-11, all rows)
     - match:
         title_pattern: Slack
       command: move --coordinates 6,0,12,12
+    # Right half (columns 6-11, all rows)
     - match:
         title_pattern: Docker Desktop
       command: move --coordinates 6,0,12,12
+    # Left half (columns 0-5, all rows)
     - match:
         process_name: Fork
       command: move --coordinates 0,0,6,12
+    # Left half (columns 0-5, all rows)
     - match:
         process_name: Code
       command: move --coordinates 0,0,6,12
+    # Right half (columns 6-11, all rows)
     - match:
         process_name: Brave
       command: move --coordinates 6,0,12,12
+    # Right half (columns 6-11, all rows)
     - match:
         process_name: devenv
       command: move --coordinates 6,0,12,12
+    # Right half (columns 6-11, all rows)
     - match: 
         process_name: Obsidian
       command: move --coordinates 6,0,12,12
+    # Right half (columns 6-11, all rows)
     - match:
         process_name: dobulecmd
         class_name: TTOTAL_CMD
       command: move --coordinates 6,0,12,12
+    # Left half (columns 0-5, all rows)
     - match:
         title_pattern: regex:^Outlook \(PWA\)
       command: move --coordinates 0,0,6,12
+    # Right half (columns 6-11, all rows)
     - match:
         process_name: msedge
         class_name: Chrome_WidgetWin_1
