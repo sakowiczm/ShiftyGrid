@@ -1,32 +1,6 @@
 # ShiftyGrid
 
-**Grid-based window management driven by keyboard shortcuts and rules**
-
 ShiftyGrid is a keyboard-driven window manager for Windows that divides your monitor into a grid system for precise, reproducible window positioning. Define custom shortcuts and window organization rules in YAML to automate your entire window management workflow.
-
-## Is ShiftyGrid for You?
-
-ShiftyGrid is ideal if you:
-- Spend significant time juggling multiple windows and want to organize them faster
-- Prefer keyboard shortcuts over mouse interactions
-- Want reproducible window layouts that work across different monitor resolutions
-- Need to automatically position windows based on application type
-- Want fine-grained control over which windows get managed
-
-## Quick Start
-
-1. **Download & Run**: Start the ShiftyGrid server
-   ```bash
-   ShiftyGrid start
-   ```
-
-2. **Configure**: Edit `config.yaml` to define your keyboard shortcuts and window rules
-
-3. **Use**: Press your configured hotkeys to manage windows instantly
-
-**Example**: `Ctrl+Alt+Left` to move the current window to the left half of your screen
-
----
 
 ## Features
 
@@ -41,8 +15,6 @@ ShiftyGrid is ideal if you:
 
 >[!NOTE]
 > **ShiftyGrid is not a tiling window manager**. It focuses on **quick manual window positioning** driven by keyboard shortcuts. The primary use case is user-initiated positioning—press a hotkey to move the current window where you want it. Window organization rules are available for automating positioning of specific applications (e.g., always put Firefox on the left), but automatic tiling of all windows is not the design goal.
-
----
 
 ## The Grid
 
@@ -87,8 +59,6 @@ ShiftyGrid move --coordinates 0,0,12,24 --grid 24x24
 ```
 
 Command-level grid overrides take priority over the global setting.
-
----
 
 ## Commands
 
@@ -182,8 +152,6 @@ Display version information and project details.
 ```bash
 ShiftyGrid about
 ```
-
----
 
 ## Configuration
 
