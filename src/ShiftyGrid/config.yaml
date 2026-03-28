@@ -1,5 +1,5 @@
 general:
-  gap: 10
+  gap: 6
   grid: 12x12
   proximity_threshold: 20
   log_level: info

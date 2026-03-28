@@ -49,6 +49,14 @@ internal class WindowNavigationService
             if (_windowMatcher.ShouldIgnore(window))
                 continue;
 
+            // Skip windows with no title (background/internal process windows)
+            if (string.IsNullOrWhiteSpace(window.Text))
+                continue;
+
+            // Skip owned/popup windows (dialogs, internal UI elements like Terminal's Command Palette)
+            if (!window.IsParent)
+                continue;
+
             // Calculate distance based on direction
             int distance = direction switch
             {
@@ -123,9 +131,10 @@ internal class WindowNavigationService
                 if (windowMonitor == targetMonitor)
                 {
                     var windowInfo = Window.FromHandle(hWnd, zOrder);
-                    // Include windows with text OR valid size (for elevated windows)
-                    if (windowInfo != null &&
-                        (!string.IsNullOrWhiteSpace(windowInfo.Text) || HasValidSize(windowInfo)))
+                    // Only include windows with a title — empty-title background process windows
+                    // (e.g. Chrome/Electron renderer processes) corrupt Z-order and cause
+                    // IsObscuredByOtherWindows to produce false positives for real app windows.
+                    if (windowInfo != null && !string.IsNullOrWhiteSpace(windowInfo.Text))
                     {
                         windows.Add(windowInfo);
 
@@ -268,6 +277,14 @@ internal class WindowNavigationService
 
             // Skip ignored processes
             if (_windowMatcher.ShouldIgnore(window))
+                continue;
+
+            // Skip empty-title windows (background process windows should not count as obscurers)
+            if (string.IsNullOrWhiteSpace(window.Text))
+                continue;
+
+            // Skip owned/popup windows (should not block navigation to real app windows)
+            if (!window.IsParent)
                 continue;
 
             // Only check windows that are IN FRONT of the candidate

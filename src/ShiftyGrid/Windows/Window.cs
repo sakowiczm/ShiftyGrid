@@ -285,7 +285,11 @@ internal record Window
             if (hResult.Succeeded)
                 return rect;
 
-            Logger.Error($"Window. Error getting window ({hwnd}) rect. Error code: {Marshal.GetLastWin32Error()}.");
+            // Race condition: window destroyed after enumeration
+            if (hResult.Value == unchecked((int)0x80070006)) // ERROR_INVALID_HANDLE
+                Logger.Debug($"Window. Window ({hwnd}) destroyed before rect could be read.");
+            else
+                Logger.Warning($"Window. Error getting window ({hwnd}) rect. HRESULT: 0x{hResult.Value:X8}.");
 
             return default;
         }

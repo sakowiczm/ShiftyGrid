@@ -63,7 +63,7 @@ internal class WindowSelector
             if (selected.Count >= targetCount)
                 break;
 
-            if (!selectedHandles.Contains(window.Handle) && !_windowMatcher.ShouldIgnore(window))
+            if (!selectedHandles.Contains(window.Handle) && !_windowMatcher.ShouldIgnore(window) && window.IsParent)
             {
                 selected.Add(window);
                 selectedHandles.Add(window.Handle);
@@ -111,6 +111,10 @@ internal class WindowSelector
                 continue;
 
             if (_windowMatcher.ShouldIgnore(window))
+                continue;
+
+            // Skip owned/popup windows (dialogs, internal UI elements like Terminal's Command Palette)
+            if (!window.IsParent)
                 continue;
 
             // Check if window is fully visible (not obscured)

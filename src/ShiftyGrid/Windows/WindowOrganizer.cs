@@ -19,24 +19,25 @@ internal class WindowOrganizer
 
     /// <summary>
     /// Tries to organize a single window according to matching rules.
-    /// Returns true if the window was positioned successfully.
+    /// Returns true if positioned successfully, false if positioning failed (retry worthwhile),
+    /// null if no rule matched or window should be skipped (no retry needed).
     /// </summary>
-    public bool TryOrganize(Window window)
+    public bool? TryOrganize(Window window)
     {
         if (_windowMatcher.ShouldIgnore(window))
-            return false;
+            return null;
 
         if (window.State == WindowState.Minimized)
-            return false;
+            return null;
 
         if (!window.IsParent)
-            return false;
+            return null;
 
         var matchingRule = _windowMatcher.FindOrganizeRule(window);
         if (matchingRule?.ParsedCoordinates == null)
         {
-            Logger.Debug($"WindowOrganizer: No match for '{window.Text}'");
-            return false;
+            Logger.Debug($"WindowOrganizer: No match for '{window.Text}' [{window.ClassName}]");
+            return null;
         }
 
         Logger.Info($"WindowOrganizer: Matched '{window.Text}' -> {matchingRule.ParsedCoordinates}");

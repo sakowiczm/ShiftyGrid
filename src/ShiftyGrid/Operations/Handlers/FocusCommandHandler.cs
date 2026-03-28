@@ -1,8 +1,10 @@
 using ShiftyGrid.Server;
 using ShiftyGrid.Windows;
+using System.Runtime.InteropServices;
 using System.Text.Json.Serialization.Metadata;
 using Windows.Win32;
 using Windows.Win32.Foundation;
+using Windows.Win32.UI.WindowsAndMessaging;
 using ShiftyGrid.Infrastructure.Models;
 using ShiftyGrid.Common;
 
@@ -60,7 +62,7 @@ internal class FocusCommandHandler : RequestHandler<Direction>
 
         if (targetWindow == null)
         {
-            Logger.Debug($"FocusCommand: No window found in direction {direction} (with wrap-around)");
+            Logger.Warning($"FocusCommand: No window found {direction} from '{activeWindow.Text}' [{activeWindow.ClassName}]");
             return false;
         }
 
@@ -69,7 +71,7 @@ internal class FocusCommandHandler : RequestHandler<Direction>
 
         if (success)
         {
-            Logger.Info($"FocusCommand: Focus moved {direction} to '{targetWindow.Text}'");
+            Logger.Info($"FocusCommand: Focus moved {direction} to '{targetWindow.Text}' [{targetWindow.ClassName}]");
         }
         else
         {
@@ -89,31 +91,41 @@ internal class FocusCommandHandler : RequestHandler<Direction>
         {
             var currentForeground = PInvoke.GetForegroundWindow();
             if (currentForeground == hwnd)
+            {
+                // Already the foreground window
                 return true;
+            }
+
+            // Initialize message queue for this thread if needed.
+            // Thread pool threads have no Win32 message queue by default, and AttachThreadInput
+            // requires both threads to have message queues.
+            PInvoke.PeekMessage(out _, HWND.Null, 0, 0, PEEK_MESSAGE_REMOVE_TYPE.PM_NOREMOVE);
 
             uint currentThreadId = PInvoke.GetCurrentThreadId();
             uint foregroundThreadId = PInvoke.GetWindowThreadProcessId(currentForeground, null);
-            uint targetThreadId = PInvoke.GetWindowThreadProcessId(hwnd, null);
 
-            bool attachedForeground = false;
-            bool attachedTarget = false;
-
-            if (foregroundThreadId != currentThreadId)
-                attachedForeground = PInvoke.AttachThreadInput(currentThreadId, foregroundThreadId, true);
-
-            // Also attach to the target window's thread — required for Electron/Chromium apps (e.g. Slack)
-            // where the target window runs on a thread separate from the current foreground thread.
-            // Without this, AttachThreadInput grants no permission to activate the target.
-            if (targetThreadId != currentThreadId && targetThreadId != foregroundThreadId)
-                attachedTarget = PInvoke.AttachThreadInput(currentThreadId, targetThreadId, true);
+            bool attached = false;
+            if (foregroundThreadId != currentThreadId && foregroundThreadId != 0)
+            {
+                // Attach to foreground thread's input queue to gain foreground permission
+                attached = PInvoke.AttachThreadInput(currentThreadId, foregroundThreadId, true);
+                if (!attached)
+                {
+                    Logger.Debug($"FocusCommand: AttachThreadInput failed. Error: {Marshal.GetLastWin32Error()}");
+                }
+            }
 
             var success = PInvoke.SetForegroundWindow(hwnd);
-            PInvoke.BringWindowToTop(hwnd); // Required for apps that manage their own window stacking (e.g. Electron)
 
-            if (attachedForeground)
+            if (attached)
+            {
                 PInvoke.AttachThreadInput(currentThreadId, foregroundThreadId, false);
-            if (attachedTarget)
-                PInvoke.AttachThreadInput(currentThreadId, targetThreadId, false);
+            }
+
+            if (!success)
+            {
+                Logger.Debug($"FocusCommand: SetForegroundWindow failed. Error: {Marshal.GetLastWin32Error()}");
+            }
 
             return success;
         }
@@ -154,6 +166,14 @@ internal class FocusCommandHandler : RequestHandler<Direction>
 
             // Skip border overlay windows
             if (_windowMatcher.ShouldIgnore(window))
+                continue;
+
+            // Skip windows with no title (background/internal process windows)
+            if (string.IsNullOrWhiteSpace(window.Text))
+                continue;
+
+            // Skip owned/popup windows (dialogs, internal UI elements like Terminal's Command Palette)
+            if (!window.IsParent)
                 continue;
 
             // Check for required overlap based on direction
@@ -202,4 +222,6 @@ internal class FocusCommandHandler : RequestHandler<Direction>
 
         return bestMatch;
     }
+
+    // Note: Overlap calculation methods moved to WindowGeometry class
 }

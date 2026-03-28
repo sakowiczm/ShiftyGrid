@@ -149,6 +149,10 @@ internal class WindowLifecycleMonitor : IDisposable
         if (hwnd.IsNull || !PInvoke.IsWindow(hwnd))
             return;
 
+        // Skip windows that are not yet visible (transient/system windows, tooltips, etc.)
+        if (!PInvoke.IsWindowVisible(hwnd))
+            return;
+
         lock (_lock)
         {
             // Check if already processed
@@ -232,9 +236,17 @@ internal class WindowLifecycleMonitor : IDisposable
         }
 
         // Try to organize
-        bool success = _organizer.TryOrganize(window);
+        bool? organizeResult = _organizer.TryOrganize(window);
 
-        if (success)
+        if (organizeResult == null)
+        {
+            // No matching rule - skip silently, no retry needed
+            Logger.Debug($"AutoOrganize: No rule for '{window.Text}' [{window.ClassName}], skipping");
+            MarkAsFailed(hwnd, attempt);
+            return;
+        }
+
+        if (organizeResult == true)
         {
             // Verify positioning actually worked
             if (VerifyPositioning(hwnd))
@@ -250,7 +262,7 @@ internal class WindowLifecycleMonitor : IDisposable
         }
         else
         {
-            Logger.Debug($"AutoOrganize: TryOrganizeWindow returned false for '{window.Text}'");
+            Logger.Debug($"AutoOrganize: Positioning failed for '{window.Text}' [{window.ClassName}]");
             HandleFailedAttempt(hwnd, attempt, window);
         }
     }
@@ -264,7 +276,7 @@ internal class WindowLifecycleMonitor : IDisposable
         {
             if (attempt.AttemptCount >= MAX_ATTEMPTS)
             {
-                Logger.Warning($"AutoOrganize: Max attempts reached for '{window?.Text ?? hwnd.ToString()}', giving up");
+                Logger.Warning($"AutoOrganize: Max attempts reached for '{window?.Text ?? hwnd.ToString()}' [{window?.ClassName ?? "?"}], giving up");
                 MarkAsFailed(hwnd, attempt);
                 return;
             }
